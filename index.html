@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08111f">
+<title>ПОЗИТРОН КЕНО v7.1</title>
+<link rel="manifest" href="manifest.webmanifest">
+
+<link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+
+<style>
+:root{
+ --bg:#07111f;--panel:#0e1b2d;--panel2:#13243a;--line:#29415f;
+ --text:#f4f8ff;--muted:#96a9c1;--accent:#63a9ff;--gold:#ffd35c;
+ --green:#72df95;--red:#ff7d86;--coffee:#f0c45a
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{min-height:100vh;background:linear-gradient(180deg,#07111f 0%,#0a1728 45%,#07111f 100%)}
+button,input,select{font:inherit}
+.app{max-width:760px;margin:auto;padding:10px 10px 92px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.brand{font-size:21px;font-weight:900;letter-spacing:.2px}
+.sub{font-size:12px;color:var(--muted);margin-top:2px}
+.icon{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:18px}
+.mode{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:8px 0}
+.mode button{padding:8px 3px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:13px}
+.mode button.on{background:#254b78;border-color:#5b8fc9;font-weight:800}
+.card{background:rgba(14,27,45,.98);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px;box-shadow:0 5px 18px rgba(0,0,0,.18)}
+.head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.75px;color:var(--muted);font-weight:850}
+.draw{font-size:20px;font-weight:950;margin-top:1px}
+.time{font-size:12px;color:#cad7e6;margin-top:2px}
+.win{font-size:17px;font-weight:950;color:var(--gold);white-space:nowrap}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.meta span{font-size:12px;border:1px solid #2a4160;background:#14253b;border-radius:999px;padding:3px 7px}
+.numbers{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:8px}
+.ball{min-width:0;text-align:center;border:1px solid #304b6d;background:#172a43;border-radius:8px;padding:7px 1px;font-family:ui-monospace,Consolas,monospace;font-weight:900;font-size:14px;white-space:nowrap}
+.ball.pass{border-color:#d89b3e;background:#362816}
+.ball.same{box-shadow:inset 0 -2px 0 var(--green)}
+.ball.hit{border-color:#43d77b;background:#123a28;color:#c9ffda;box-shadow:inset 0 0 0 1px #43d77b}
+.check-num{display:inline-block;padding:5px 8px;margin:3px;border:1px solid #304b6d;border-radius:8px;background:#172a43;font-weight:900;font-family:ui-monospace,Consolas,monospace}
+.check-num.hit{border-color:#43d77b;background:#123a28;color:#c9ffda}
+.check-good{color:#72df95;font-weight:950}.check-bad{color:#ff9ca4;font-weight:900}
+.notes{font-size:12px;line-height:1.45;margin-top:7px}
+.single{color:#ffe18b}.empty{color:#ffadb4}
+.section{display:flex;align-items:center;justify-content:space-between;margin:13px 2px 7px;font-weight:950}
+.section input{width:145px;padding:6px;background:#0b1625;color:var(--text);border:1px solid var(--line);border-radius:8px}
+.chain{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px;margin-bottom:7px}
+.chain-top{font-size:13px;font-weight:800}
+.seq{font-size:19px;font-weight:950;color:#8eedaa;letter-spacing:1px;margin-top:5px}
+.break{margin-top:7px;padding:6px;border-radius:8px;text-align:center;background:#302812;border:1px solid #6e5b20;color:#ffe48b;font-weight:850}
+.open{font-size:12px;color:var(--muted);margin-top:6px}
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:6px}
+.tool{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:9px 3px;font-size:12px;font-weight:800}
+.panel{display:none}.panel.show{display:block}
+.row{background:#101f33;border:1px solid #263e5b;border-radius:9px;padding:9px;margin-top:6px;font-size:13px}
+.analog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px}
+.analog-item{background:#101f33;border:1px solid #2a4464;border-radius:11px;padding:9px;margin-top:7px}
+.analog-score{font-size:19px;font-weight:950;color:#8eedaa}
+.analog-next{font-size:17px;font-weight:950;color:var(--gold)}
+.breakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:7px;font-size:11px;color:#c4d1e0}
+.breakdown span{background:#0b1727;border-radius:7px;padding:4px 6px}
+.freq{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.freq span{border:1px solid #355273;background:#152a43;border-radius:999px;padding:4px 7px;font-size:12px}
+@media(min-width:620px){.analog-grid{grid-template-columns:repeat(4,1fr)}}
+.flex{display:grid;grid-template-columns:1fr auto;gap:6px}
+input,select{width:100%;padding:9px;background:#0a1422;color:var(--text);border:1px solid var(--line);border-radius:9px}
+.small{font-size:12px;color:var(--muted);line-height:1.45}
+.footer{position:fixed;left:0;right:0;bottom:0;background:rgba(5,12,21,.96);border-top:1px solid var(--line);backdrop-filter:blur(9px);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+.footerin{max-width:760px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.footer button{border:0;background:transparent;color:#bccbdb;padding:5px 2px;font-size:11px}
+.footer b{display:block;font-size:18px}
+dialog{width:calc(100% - 20px);max-width:700px;background:#0e1b2d;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:12px}
+dialog::backdrop{background:rgba(0,0,0,.72)}
+@media(min-width:620px){.numbers{grid-template-columns:repeat(10,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div>
+      <div class="brand">🎯 ПОЗИТРОН КЕНО v7.1</div>
+      <div style="display:inline-block;margin-top:6px;padding:5px 10px;border:2px solid #4ade80;border-radius:10px;color:#4ade80;font-weight:900">НОВАЯ СБОРКА 7.1 · AI-АНАЛИЗАТОР</div>
+      <div id="status" class="sub">v7.1 · AI-анализатор и честная проверка · база загружается…</div>
+    </div>
+    <div>
+      <button id="sync" class="icon">↻</button>
+      <button id="settingsBtn" class="icon">⚙</button>
+    </div>
+  </div>
+
+  <div class="mode">
+    <button class="on" data-mode="fall">Выпадение</button>
+    <button data-mode="asc">Возрастание</button>
+    <button data-mode="both">Вместе</button>
+  </div>
+
+  <div class="sub" style="margin:0 2px 8px">🔸 реальное переходное число из предыдущего тиража · зелёная линия — одно и то же число стоит на одинаковом месте в выпадении и возрастании</div>
+
+  <main id="cards"></main>
+
+  <div class="section">
+    <span>⛓ Цепочки столбов</span>
+    <input id="chainDate" type="date">
+  </div>
+  <div id="chains"></div>
+
+  <div class="section"><span>Инструменты</span></div>
+  <div class="tools">
+    <button class="tool" data-panel="searchPanel">🔍 Поиск</button>
+    <button class="tool" data-panel="analogsPanel">🎯 Аналоги+</button>
+    <button class="tool" data-panel="archivePanel">📅 Архив</button>
+    <button class="tool" data-panel="dataPanel">💾 База</button>
+    <button class="tool" data-panel="infoPanel">ℹ️ О v7.1</button>
+  </div>
+
+  <section id="searchPanel" class="card panel">
+    <div class="flex">
+      <input id="searchDraw" inputmode="numeric" placeholder="Номер тиража">
+      <button id="findBtn" class="tool">Найти</button>
+    </div>
+    <div id="searchResult"></div>
+  </section>
+
+
+  <section id="analogsPanel" class="card panel">
+    <div class="label">🎯 АНАЛОГИ+</div>
+    <div class="small" style="margin-top:5px">Один анализ по всей сохранённой базе. Прогноз фиксируется только на один следующий тираж, а проверка появляется автоматически после его выхода.</div>
+    <div class="tools" style="grid-template-columns:1fr;margin-top:12px">
+      <button id="runPlusBtn" class="tool" style="font-size:17px">⚡ Провести AI-анализ</button>
+      <button id="qualityBtn" class="tool" style="font-size:15px">📊 Проверить качество на прошлом</button>
+    </div>
+    <div id="plusResult"></div>
+    <div id="qualityResult"></div>
+    <div id="liveCheckResult"></div>
+  </section>
+
+  <section id="archivePanel" class="card panel">
+    <div id="archive"></div>
+  </section>
+
+  <section id="dataPanel" class="card panel">
+    <div class="tools" style="grid-template-columns:1fr 1fr">
+      <label class="tool" style="text-align:center">📂 Импорт CSV/JSON<input id="importFile" type="file" accept=".csv,.json" hidden></label>
+      <button id="exportBtn" class="tool">⬇️ Экспорт базы</button>
+    </div>
+    <p class="small">Импорт добавляет новые тиражи без дублей. Экспорт сохраняет всю локальную базу одним JSON-файлом.</p>
+  </section>
+
+  <section id="infoPanel" class="card panel">
+    <p class="small">Версия v7.1: AI-анализатор сравнивает группу исторических ситуаций по хвостам 2–3–4, распределению столбов, числам, переходам, сумме, чётности, одиночным и пустым столбам. Встроенная проверка качества выполняется только на прошлом и не заглядывает в будущие тиражи. Каждый живой прогноз фиксируется только на один тираж и затем закрывается.</p>
+  </section>
+</div>
+
+<div class="footer"><div class="footerin">
+  <button onclick="scrollTo({top:0,behavior:'smooth'})"><b>⌂</b>Главная</button>
+  <button data-foot="archivePanel"><b>▦</b>Архив</button>
+  <button data-foot="analogsPanel"><b>◎</b>Аналоги+</button>
+  <button id="sync2"><b>↻</b>Обновить</button>
+</div></div>
+
+<dialog id="settings">
+  <form method="dialog">
+    <div class="section" style="margin-top:0"><span>Настройки обновления</span><button class="icon">✕</button></div>
+    <label class="small">Адрес источника тиражей</label>
+    <input id="sourceUrl" value="https://pozitron-keno-v3.netlify.app/.netlify/functions/fresh-draws">
+    <div style="height:8px"></div>
+    <label class="small">Проверять автоматически</label>
+    <select id="interval">
+      <option value="0">Выключено</option>
+      <option value="300000">Каждые 5 минут</option>
+      <option value="600000">Каждые 10 минут</option>
+      <option value="1800000">Каждые 30 минут</option>
+    </select>
+    <div style="height:8px"></div>
+    <button id="saveSettings" class="tool" style="width:100%">Сохранить</button>
+    <p class="small">На GitHub Pages приложение хранит базу в браузере телефона. Для надёжности периодически нажимайте «Экспорт базы».</p>
+  </form>
+</dialog>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const column=n=>n%10===0?10:n%10;
+let draws=[],mode='fall',timer=null;
+const analysisCache=new WeakMap();
+
+function normDate(v){
+ v=String(v||'').trim();
+ let m=v.match(/^(\d{2})[.\-/](\d{2})[.\-/](\d{4})$/);
+ if(m)return `${m[3]}-${m[2]}-${m[1]}`;
+ m=v.match(/^(\d{4})[.\-/](\d{2})[.\-/](\d{2})$/);
+ if(m)return `${m[1]}-${m[2]}-${m[3]}`;
+ return v.slice(0,10);
+}
+function showDate(v){const p=normDate(v).split('-');return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:v}
+function normTime(v){return String(v||'').match(/\d{1,2}:\d{2}(?::\d{2})?/)?.[0]||String(v||'')}
+function valid(o){
+ const draw=Number(o.draw??o.number??o.drawNumber??o.id);
+ const date=normDate(o.date??o.drawDate??o.datetime??'');
+ const time=normTime(o.time??o.drawTime??o.datetime??'');
+ let balls=o.balls??o.numbers??o.results??o.result??o.winningNumbers;
+ if(typeof balls==='string')balls=(balls.match(/\d+/g)||[]).map(Number);
+ balls=(balls||[]).map(Number).slice(0,20);
+ return Number.isFinite(draw)&&balls.length===20&&balls.every(n=>n>=1&&n<=80)?{draw,date,time,balls}:null;
+}
+function walk(o,out=[]){
+ if(Array.isArray(o)){o.forEach(x=>walk(x,out));return out}
+ if(o&&typeof o==='object'){
+  const d=valid(o); if(d)out.push(d);
+  else Object.values(o).forEach(v=>{if(v&&typeof v==='object')walk(v,out)})
+ }
+ return out
+}
+function csvLine(s){
+ const a=[];let cur='',q=false;
+ for(let i=0;i<s.length;i++){const c=s[i];if(c==='"')q=!q;else if((c===','||c===';')&&!q){a.push(cur.trim());cur=''}else cur+=c}
+ a.push(cur.trim());return a
+}
+function parse(text){
+ text=String(text||'').replace(/^\uFEFF/,'').trim();
+ if(!text)return [];
+ try{return dedupe(walk(JSON.parse(text)))}catch{}
+ const out=[],lines=text.split(/\r?\n/).filter(Boolean);
+ lines.forEach((line,i)=>{
+  const p=csvLine(line);if(i===0&&p.some(x=>/тираж|draw|date|дата/i.test(x)))return;
+  let d=null;
+  if(p.length>=23)d=valid({draw:p[0],date:p[1],time:p[2],balls:p.slice(3,23)});
+  if(!d&&p.length>=24)d=valid({date:p[1],time:p[2],draw:p[3],balls:p.slice(4,24)});
+  if(d)out.push(d)
+ });
+ return dedupe(out)
+}
+function dedupe(a){const m=new Map();a.forEach(d=>m.set(Number(d.draw),d));return [...m.values()].sort((x,y)=>x.draw-y.draw)}
+function analysis(d){
+ if(analysisCache.has(d))return analysisCache.get(d);
+ const count=Array(11).fill(0),reach=Array(11).fill(999);
+ d.balls.forEach(n=>count[column(n)]++);
+ const max=Math.max(...count.slice(1));
+ for(let c=1;c<=10;c++)if(count[c]===max){let seen=0;for(let i=0;i<20;i++){if(column(d.balls[i])===c)seen++;if(seen===max){reach[c]=i;break}}}
+ let winner=1;for(let c=2;c<=10;c++)if(count[c]>count[winner]||(count[c]===count[winner]&&reach[c]<reach[winner]))winner=c;
+ const even=d.balls.filter(n=>n%2===0).length,odd=20-even,sum=d.balls.reduce((a,b)=>a+b,0),empty=[],single=[];
+ for(let c=1;c<=10;c++){if(count[c]===0)empty.push(c);if(count[c]===1)single.push(c)}
+ const result={winner,even,odd,sum,empty,single};
+ analysisCache.set(d,result);
+ return result
+}
+function save(){localStorage.setItem('pozitron_v5_draws',JSON.stringify(draws))}
+function load(){try{draws=dedupe(JSON.parse(localStorage.getItem('pozitron_v5_draws')||'[]'))}catch{draws=[]}}
+function merge(a){const before=draws.length;draws=dedupe([...draws,...a]);save();return draws.length-before}
+function transitions(i){if(i<=0)return new Set();return new Set(draws[i-1].balls.filter(n=>draws[i].balls.includes(n)))}
+function ball(d,i,p){
+ const asc=[...d.balls].sort((a,b)=>a-b);
+ const fallNum=d.balls[p];
+ const ascNum=asc[p];
+ const passSet=transitions(i);
+
+ let shownNum=fallNum;
+ let text=pad(fallNum);
+ let isPass=passSet.has(fallNum);
+
+ if(mode==='asc'){
+  shownNum=ascNum;
+  text=pad(ascNum);
+  isPass=passSet.has(ascNum);
+ }
+
+ if(mode==='both'){
+  shownNum=fallNum;
+  text=pad(fallNum)+(passSet.has(fallNum)?'🔸':'')+`(${pad(ascNum)})`;
+  isPass=passSet.has(fallNum);
+ }
+
+ const same=fallNum===ascNum;
+ return `<div class="ball ${isPass?'pass':''} ${same?'same':''}">${mode==='both'?text:text+(isPass?'🔸':'')}</div>`
+}
+function card(d,i,label){
+ const a=analysis(d),parity=a.even===a.odd?'поровну':a.even>a.odd?'чёт':'нечёт';
+ return `<section class="card">
+  <div class="head"><div><div class="label">${label}</div><div class="draw">№${d.draw}</div><div class="time">${showDate(d.date)} ${normTime(d.time)}</div></div><div class="win">🔴 ст${a.winner}</div></div>
+  <div class="meta"><span>Σ ${a.sum}</span><span>${a.even}/${a.odd}</span><span>${parity}</span></div>
+  <div class="numbers">${d.balls.map((_,p)=>ball(d,i,p)).join('')}</div>
+  <div class="notes">${a.single.length?`<span class="single">☝️ одиночные: ${a.single.map(x=>'ст'+x).join(', ')}</span>`:''}${a.single.length&&a.empty.length?' · ':''}${a.empty.length?`<span class="empty">${a.empty.map(x=>`ст${x} ☐ — пустой!`).join(' ')}</span>`:''}</div>
+ </section>`
+}
+function renderCards(){
+ const labels=['ПОСЛЕДНИЙ ТИРАЖ','ПРЕДЫДУЩИЙ ТИРАЖ','ПРЕДПРЕДЫДУЩИЙ ТИРАЖ'];
+ if(!draws.length){
+  $('cards').innerHTML='<section class="card small"><b>ПОЗИТРОН КЕНО v5 запущен.</b><br>База пока пустая. Откройте «База» и импортируйте CSV/JSON либо настройте источник обновления через ⚙.</section>';
+  return
+ }
+ const out=[];
+ for(let k=0;k<3;k++){
+  const i=draws.length-1-k;
+  if(i>=0) out.push(card(draws[i],i,labels[k]));
+  else out.push(`<section class="card"><div class="label">${labels[k]}</div><div class="small" style="margin-top:8px">Недостаточно данных для этой карточки.</div></section>`);
+ }
+ $('cards').innerHTML=out.join('')
+}
+function minutes(t){const m=normTime(t).match(/(\d+):(\d+)/);return m?+m[1]*60 + +m[2]:0}
+function renderChains(){
+ const date=$('chainDate').value||draws.at(-1)?.date||'',day=draws.filter(d=>normDate(d.date)===normDate(date));
+ if(!day.length){$('chains').innerHTML='<div class="card small">За выбранную дату данных нет.</div>';return}
+ const blocks=[];let cur=[];
+ day.forEach(d=>{if(cur.length&&minutes(d.time)-minutes(cur.at(-1).time)>30){blocks.push(cur);cur=[]}cur.push(d);if(cur.length===5){blocks.push(cur);cur=[]}});
+ if(cur.length)blocks.push(cur);
+ $('chains').innerHTML=blocks.map((b,i)=>{
+  const seq=b.map(d=>analysis(d).winner).join('–'),next=blocks[i+1],gap=next?minutes(next[0].time)-minutes(b.at(-1).time):0;
+  return `<div class="chain"><div class="chain-top">${b[0].draw}–${b.at(-1).draw} | ${showDate(b[0].date)} | ${normTime(b[0].time)}–${normTime(b.at(-1).time)}</div><div class="seq">${seq}</div>${b.length===5&&gap>30?'<div class="break">☕ перерыв 1 час</div>':b.length<5?'<div class="open">Открытая цепочка</div>':''}</div>`
+ }).join('')
+}
+function archiveDateKey(d){return normDate(d.date)}
+function archiveDateTimeValue(d){
+ const key=archiveDateKey(d),parts=key.split(/[-.]/).map(Number);
+ let y,m,day;
+ if(parts[0]>1900){[y,m,day]=parts}else{[day,m,y]=parts;if(y<100)y+=2000}
+ return new Date(y||2000,(m||1)-1,day||1,0,0,0).getTime()+minutes(d.time)
+}
+function renderArchive(){
+ const m=new Map();
+ draws.forEach(d=>{const k=archiveDateKey(d);m.set(k,(m.get(k)||0)+1)});
+ const rows=[...m.entries()].sort((a,b)=>{
+  const da=draws.find(d=>archiveDateKey(d)===a[0]),db=draws.find(d=>archiveDateKey(d)===b[0]);
+  return archiveDateTimeValue(db)-archiveDateTimeValue(da)
+ });
+ $('archive').innerHTML=`<div class="section" style="margin-top:0"><span>Архив по датам</span></div>`+
+  (rows.map(([date,n])=>`<button type="button" class="row archive-date" data-archive-date="${date}" style="width:100%;color:inherit;text-align:left"><b>${showDate(date)}</b><span style="float:right">${n} тиражей ›</span></button>`).join('')||'<p class="small">Архив пуст.</p>');
+ document.querySelectorAll('[data-archive-date]').forEach(b=>b.onclick=()=>renderArchiveDay(b.dataset.archiveDate))
+}
+function renderArchiveDay(date){
+ const day=draws.filter(d=>archiveDateKey(d)===normDate(date)).sort((a,b)=>archiveDateTimeValue(a)-archiveDateTimeValue(b));
+ if(!day.length){renderArchive();return}
+ const blocks=[];let cur=[];
+ day.forEach(d=>{if(cur.length&&minutes(d.time)-minutes(cur.at(-1).time)>30){blocks.push(cur);cur=[]}cur.push(d);if(cur.length===5){blocks.push(cur);cur=[]}});
+ if(cur.length)blocks.push(cur);
+ const chainsHtml=blocks.map((b,i)=>{
+  const seq=b.map(d=>analysis(d).winner).join('–'),next=blocks[i+1],gap=next?minutes(next[0].time)-minutes(b.at(-1).time):0;
+  return `<div class="chain"><div class="chain-top">${b[0].draw}–${b.at(-1).draw} | ${showDate(b[0].date)} | ${normTime(b[0].time)}–${normTime(b.at(-1).time)}</div><div class="seq">${seq}</div>${b.length===5&&gap>30?'<div class="break">☕ перерыв 1 час</div>':b.length<5?'<div class="open">Открытая цепочка</div>':''}</div>`
+ }).join('');
+ const drawsHtml=day.map((d,idx)=>{
+  const a=analysis(d),parity=a.even===a.odd?'поровну':a.even>a.odd?'чёт':'нечёт';
+  return `<section class="card" style="margin:10px 0"><div class="head"><div><div class="draw">№${d.draw}</div><div class="time">${showDate(d.date)} ${normTime(d.time)}</div></div><div class="win">🔴 ст${a.winner}</div></div><div class="meta"><span>Σ ${a.sum}</span><span>${a.even}/${a.odd}</span><span>${parity}</span></div><div class="numbers">${d.balls.map(n=>`<div class="ball">${pad(n)}</div>`).join('')}</div><div class="notes">${a.single.length?`<span class="single">☝️ одиночные: ${a.single.map(x=>'ст'+x).join(', ')}</span>`:''}${a.single.length&&a.empty.length?' · ':''}${a.empty.length?`<span class="empty">${a.empty.map(x=>`ст${x} ☐ — пустой!`).join(' ')}</span>`:''}</div></section>`
+ }).join('');
+ $('archive').innerHTML=`<button type="button" id="archiveBack" class="tool" style="width:100%;margin-bottom:10px">← Все даты</button><div class="section" style="margin-top:0"><span>${showDate(date)} — ${day.length} тиражей</span></div>${chainsHtml}<div class="section"><span>Все тиражи дня</span></div>${drawsHtml}`;
+ $('archiveBack').onclick=renderArchive;
+ $('archivePanel').scrollIntoView({behavior:'smooth',block:'start'})
+}
+function winnerSeq(end,depth){
+ const start=end-depth+1;if(start<0)return [];
+ return draws.slice(start,end+1).map(d=>analysis(d).winner)
+}
+function jaccard(a,b){
+ const A=new Set(a),B=new Set(b),u=new Set([...A,...B]);
+ if(!u.size)return 1;let hit=0;A.forEach(x=>{if(B.has(x))hit++});return hit/u.size
+}
+function vectorSimilarity(a,b){
+ let diff=0,total=0;for(let i=1;i<=10;i++){diff+=Math.abs(a[i]-b[i]);total+=Math.max(a[i],b[i])}
+ return total?Math.max(0,1-diff/total):1
+}
+function drawFeatures(i){
+ const d=draws[i],a=analysis(d),counts=Array(11).fill(0);d.balls.forEach(n=>counts[column(n)]++);
+ return {d,a,counts,pass:[...transitions(i)]}
+}
+function sequenceScore(a,b){
+ if(!a.length||a.length!==b.length)return 0;
+ let got=0,all=0;
+ for(let i=0;i<a.length;i++){
+  const w=i+1;all+=w;
+  if(a[i]===b[i])got+=w;
+  else if(Math.abs(a[i]-b[i])===1)got+=w*.25
+ }
+ return got/all
+}
+function closeness(x,y,range){return Math.max(0,1-Math.abs(x-y)/range)}
+function similarity(targetEnd,candidateEnd,depth,mode){
+ const t=drawFeatures(targetEnd),c=drawFeatures(candidateEnd);
+ const seq=sequenceScore(winnerSeq(targetEnd,depth),winnerSeq(candidateEnd,depth));
+ const nums=jaccard(t.d.balls,c.d.balls);
+ const cols=vectorSimilarity(t.counts,c.counts);
+ if(mode==='fast')return {score:seq*.65+cols*.25+nums*.10,seq,nums,cols,pass:0,stats:0,shape:0};
+ const pass=jaccard(t.pass,c.pass);
+ const parity=(closeness(t.a.even,c.a.even,10)+closeness(t.a.odd,c.a.odd,10))/2;
+ const sum=closeness(t.a.sum,c.a.sum,500);
+ const stats=(parity+sum)/2;
+ const single=jaccard(t.a.single,c.a.single),empty=jaccard(t.a.empty,c.a.empty),shape=(single+empty)/2;
+ return {score:seq*.38+nums*.20+cols*.17+pass*.10+stats*.08+shape*.07,seq,nums,cols,pass,stats,shape}
+}
+function pct(x){return Math.round(x*100)+'%'}
+function findAnalogs(){
+ if(draws.length<5){$('analogsResult').innerHTML='<div class="row small">В базе пока недостаточно тиражей.</div>';return}
+ const requested=Number($('analogDraw').value),targetEnd=requested?draws.findIndex(d=>d.draw===requested):draws.length-1;
+ const depth=Number($('analogDepth').value),limit=Number($('analogLimit').value),kind=$('analogMode').value;
+ if(targetEnd<depth-1){$('analogsResult').innerHTML='<div class="row small">Для этого тиража не хватает предыдущих данных.</div>';return}
+ const targetSeq=winnerSeq(targetEnd,depth),rows=[];
+ for(let end=depth-1;end<draws.length-1;end++){
+  if(end===targetEnd||Math.abs(end-targetEnd)<depth)continue;
+  const s=similarity(targetEnd,end,depth,kind);
+  rows.push({end,next:end+1,...s})
+ }
+ rows.sort((a,b)=>b.score-a.score||draws[b.end].draw-draws[a.end].draw);
+ const top=rows.slice(0,limit),freq=new Map();top.forEach(r=>{const w=analysis(draws[r.next]).winner;freq.set(w,(freq.get(w)||0)+1)});
+ const freqHtml=[...freq.entries()].sort((a,b)=>b[1]-a[1]||a[0]-b[0]).map(([w,n])=>`<span>ст${w} — ${n}×</span>`).join('');
+ const t=draws[targetEnd];
+ $('analogsResult').innerHTML=`<div class="row"><b>Вход: №${t.draw}</b> · цепочка <b>${targetSeq.join('–')}</b><br><span class="small">Проверено исторических ситуаций: ${rows.length}. Ниже — лучшие совпадения.</span><div class="freq">${freqHtml||'<span>нет данных</span>'}</div></div>`+
+ top.map((r,n)=>{
+  const d=draws[r.end],next=draws[r.next],seq=winnerSeq(r.end,depth),nw=analysis(next).winner;
+  const breakdown=kind==='fast'
+   ?`<span>цепочка ${pct(r.seq)}</span><span>столбы ${pct(r.cols)}</span><span>числа ${pct(r.nums)}</span>`
+   :`<span>цепочка ${pct(r.seq)}</span><span>числа ${pct(r.nums)}</span><span>столбы ${pct(r.cols)}</span><span>переходы ${pct(r.pass)}</span><span>Σ/чётность ${pct(r.stats)}</span><span>одиноч./пустые ${pct(r.shape)}</span>`;
+  return `<div class="analog-item"><div style="display:flex;justify-content:space-between;gap:8px"><div><b>${n+1}. №${d.draw}</b><div class="small">${showDate(d.date)} ${d.time}</div></div><div class="analog-score">${pct(r.score)}</div></div><div style="margin-top:6px">Цепочка: <b>${seq.join('–')}</b></div><div style="margin-top:4px">Следом №${next.draw}: <span class="analog-next">🔴 ст${nw}</span></div><div class="breakdown">${breakdown}</div></div>`
+ }).join('')
+}
+function buildPlusPrediction(targetEnd){
+ if(targetEnd<49)return null;
+ const candidates=[];
+ for(let end=4;end<targetEnd;end++){
+  if(Math.abs(end-targetEnd)<5)continue;
+  const depthScores={};let total=0,weight=0;
+  for(const depth of [2,3,4]){
+   if(end<depth-1||targetEnd<depth-1)continue;
+   const r=similarity(targetEnd,end,depth,'full');
+   const w=depth===2?1.0:depth===3?1.45:1.25;
+   depthScores[depth]=r.score;total+=r.score*w;weight+=w;
+  }
+  if(weight)candidates.push({end,next:end+1,score:total/weight,depthScores});
+ }
+ candidates.sort((a,b)=>b.score-a.score||draws[b.end].draw-draws[a.end].draw);
+ const pool=candidates.slice(0,50);
+ if(!pool.length)return null;
+ const threshold=Math.max(.38,pool[Math.min(24,pool.length-1)].score);
+ const top=pool.filter(r=>r.score>=threshold).slice(0,40);
+ const colScore=Array(11).fill(0),numScore=Array(81).fill(0),support=Array.from({length:11},()=>({count:0,d2:0,d3:0,d4:0,examples:[]}));
+ top.forEach((r,rank)=>{
+  const next=draws[r.next],wcol=analysis(next).winner;
+  const rankWeight=Math.max(.25,1-rank/Math.max(20,top.length));
+  const weight=(.35+r.score*.65)*rankWeight;
+  colScore[wcol]+=weight;support[wcol].count++;
+  for(const d of [2,3,4])if((r.depthScores[d]||0)>=.62)support[wcol]['d'+d]++;
+  if(support[wcol].examples.length<3)support[wcol].examples.push({draw:draws[r.end].draw,next:next.draw,score:Math.round(r.score*100)});
+  next.balls.forEach(n=>numScore[n]+=weight);
+ });
+ const columns=[...Array(10)].map((_,i)=>i+1).sort((a,b)=>colScore[b]-colScore[a]||support[b].count-support[a].count||a-b).slice(0,4);
+ const totalCol=columns.reduce((a,c)=>a+colScore[c],0)||1;
+ const numbers=[...Array(80)].map((_,i)=>i+1).sort((a,b)=>numScore[b]-numScore[a]||a-b).slice(0,10);
+ const first=colScore[columns[0]],second=colScore[columns[1]]||0;
+ const topShare=first/(colScore.reduce((a,x)=>a+x,0)||1);
+ const margin=first?Math.max(0,(first-second)/first):0;
+ const avgSimilarity=top.reduce((a,r)=>a+r.score,0)/top.length;
+ const consensus=support[columns[0]].count/top.length;
+ const confidenceScore=avgSimilarity*.35+consensus*.35+topShare*.20+margin*.10;
+ const confidence=confidenceScore>=.58?'высокая':confidenceScore>=.43?'средняя':'слабая';
+ const reasons={};
+ columns.forEach(c=>{
+  const x=support[c];const parts=[];
+  parts.push(`${x.count} из ${top.length} аналогов`);
+  if(x.d4)parts.push(`хвост 4: ${x.d4}`);
+  if(x.d3)parts.push(`хвост 3: ${x.d3}`);
+  if(x.d2)parts.push(`хвост 2: ${x.d2}`);
+  reasons[c]=parts;
+ });
+ return {top,columns,totalCol,colScore,numbers,k1:numbers.slice(0,5),k2:numbers.slice(5,10),support,reasons,confidence,confidenceScore,avgSimilarity,consensus};
+}
+const PLUS_PREDICTIONS_KEY='pozitron_v7_plus_predictions';
+function loadPlusPredictions(){
+ try{const x=JSON.parse(localStorage.getItem(PLUS_PREDICTIONS_KEY)||'[]');return Array.isArray(x)?x:[]}catch(e){return []}
+}
+function savePlusPredictions(items){
+ localStorage.setItem(PLUS_PREDICTIONS_KEY,JSON.stringify(items.slice(-200)))
+}
+function savePlusPrediction(targetDraw,p,sourceDraw){
+ const items=loadPlusPredictions();
+ const exists=items.find(x=>Number(x.targetDraw)===Number(targetDraw));
+ if(exists)return {record:exists,created:false};
+ const record={
+  targetDraw:Number(targetDraw),sourceDraw:Number(sourceDraw),createdAt:new Date().toISOString(),
+  columns:p.columns.slice(),numbers:p.numbers.slice(),k1:p.k1.slice(),k2:p.k2.slice(),confidence:p.confidence||'не определена',confidenceScore:p.confidenceScore||0,reasons:p.reasons||{},analogs:(p.top||[]).slice(0,10).map(r=>({draw:draws[r.end].draw,next:draws[r.next].draw,score:Math.round(r.score*100)}))
+ };
+ items.push(record);items.sort((a,b)=>a.targetDraw-b.targetDraw);savePlusPredictions(items);
+ return {record,created:true}
+}
+function hitNumberHtml(n,set){return `<span class="check-num ${set.has(n)?'hit':''}">${pad(n)}${set.has(n)?' ✅':''}</span>`}
+function renderOnePredictionCheck(rec,title){
+ const actual=draws.find(d=>Number(d.draw)===Number(rec.targetDraw));
+ if(!actual){
+  return `<div class="section"><span>⏳ ${title}</span></div><div class="row"><b>Прогноз сохранён только на тираж №${rec.targetDraw}</b><br><span class="small">Числа и сборки не будут проверяться по другим тиражам. Ожидаем результат именно №${rec.targetDraw}.</span></div>`
+ }
+ const set=new Set(actual.balls),a=analysis(actual),winner=a.winner;
+ const numHits=rec.numbers.filter(n=>set.has(n)).length,k1Hits=rec.k1.filter(n=>set.has(n)).length,k2Hits=rec.k2.filter(n=>set.has(n)).length;
+ const rank=rec.columns.indexOf(winner)+1;
+ const colText=rank?`<span class="check-good">ст${winner} — ${rank}-е место прогноза ✅</span>`:`<span class="check-bad">ст${winner} — в четвёрку не попал ❌</span>`;
+ return `<div class="section"><span>✅ ${title}</span></div>
+  <div class="row"><b>Тираж №${rec.targetDraw}</b> · победный ${colText}<br>
+  <span class="small">Прогноз был создан после тиража №${rec.sourceDraw} и проверен только по №${rec.targetDraw}.</span></div>
+  <div class="section"><span>Совпало чисел: ${numHits} из 10</span></div>
+  <div class="row">${rec.numbers.map(n=>hitNumberHtml(n,set)).join('')}</div>
+  <div class="section"><span>К5 №1: ${k1Hits} из 5</span></div>
+  <div class="row">${rec.k1.map(n=>hitNumberHtml(n,set)).join('')}</div>
+  <div class="section"><span>К5 №2: ${k2Hits} из 5</span></div>
+  <div class="row">${rec.k2.map(n=>hitNumberHtml(n,set)).join('')}</div>
+  <div class="section"><span>Фактические 20 чисел</span></div>
+  <div class="numbers">${actual.balls.map(n=>`<div class="ball ${rec.numbers.includes(n)?'hit':''}">${pad(n)}${rec.numbers.includes(n)?' ✅':''}</div>`).join('')}</div><div class="row check-good"><b>✅ Проверка завершена.</b><br>Этот прогноз закрыт и больше не сравнивается с другими тиражами.</div>`
+}
+function renderLivePredictionCheck(){
+ const box=$('liveCheckResult');if(!box)return;
+ const items=loadPlusPredictions().sort((a,b)=>b.targetDraw-a.targetDraw);
+ if(!items.length){box.innerHTML='';return}
+ const pending=items.find(x=>!draws.some(d=>Number(d.draw)===Number(x.targetDraw)));
+ const checked=items.find(x=>draws.some(d=>Number(d.draw)===Number(x.targetDraw)));
+ let html='';
+ if(pending)html+=renderOnePredictionCheck(pending,'Прогноз ожидает результат');
+ if(checked)html+=renderOnePredictionCheck(checked,'Проверка последнего прогноза');
+ box.innerHTML=html
+}
+function runAnalogsPlus(){
+ const box=$('plusResult');
+ if(draws.length<50){box.innerHTML='<div class="row small">Для нового анализа нужно хотя бы 50 сохранённых тиражей. Сейчас: '+draws.length+'.</div>';return}
+ const targetEnd=draws.length-1,calculated=buildPlusPrediction(targetEnd);
+ if(!calculated){box.innerHTML='<div class="row small">Подходящая группа аналогов не найдена.</div>';return}
+ const latest=draws[targetEnd],targetDraw=latest.draw+1;
+ const saved=savePlusPrediction(targetDraw,calculated,latest.draw),p=saved.record;
+ const confidenceClass=calculated.confidence==='высокая'?'check-good':calculated.confidence==='слабая'?'check-bad':'';
+ const weights=p.columns.map(c=>calculated.colScore&&calculated.totalCol?Math.round(calculated.colScore[c]/calculated.totalCol*100):0);
+ const weakNote=calculated.confidence==='слабая'?'<div class="row check-bad"><b>Сильного сигнала нет.</b> Прогноз сохранён, но его нужно считать экспериментальным.</div>':'';
+ box.innerHTML=`<div class="row" style="margin-top:12px"><b>Прогноз только на тираж №${targetDraw}</b><br><span class="small">${saved.created?'Создан и зафиксирован сейчас':'Уже был зафиксирован раньше и не изменён'} · отобрано аналогов: ${calculated.top.length} · средняя похожесть: ${pct(calculated.avgSimilarity)}</span><br><b class="${confidenceClass}">Уверенность: ${calculated.confidence} (${Math.round(calculated.confidenceScore*100)}%)</b></div>${weakNote}
+ <div class="section"><span>Четыре основных столба</span></div>
+ <div class="tools" style="grid-template-columns:1fr 1fr">${p.columns.map((c,i)=>`<div class="tool" style="text-align:center"><div class="small">${i+1} место</div><div style="font-size:25px;font-weight:950;color:#ffd45b">ст${c}</div><div>${weights[i]}%</div></div>`).join('')}</div>
+ <div class="section"><span>Почему выбраны столбы</span></div>
+ ${p.columns.map(c=>`<div class="row"><b>ст${c}</b> · ${(calculated.reasons[c]||[]).join(' · ')}<br><span class="small">Примеры: ${(calculated.support[c].examples||[]).map(x=>`№${x.draw}→№${x.next} (${x.score}%)`).join(', ')||'нет'}</span></div>`).join('')}
+ <div class="section"><span>Наиболее вероятные числа</span></div>
+ <div class="numbers">${p.numbers.map(n=>`<div class="ball">${pad(n)}</div>`).join('')}</div>
+ <div class="section"><span>Сборки К5</span></div>
+ <div class="row" style="font-size:20px;font-weight:900;letter-spacing:2px">${p.k1.map(pad).join(' · ')}</div>
+ <div class="row" style="font-size:20px;font-weight:900;letter-spacing:2px">${p.k2.map(pad).join(' · ')}</div>
+ <div class="row small"><b>Зафиксировано строго на №${targetDraw}.</b> Причины выбора и лучшие аналоги сохранены вместе с прогнозом. После проверки он будет закрыт и не сравнится с другими тиражами.</div>`;
+ renderLivePredictionCheck();
+}
+
+function qualityBand(v){return v>=.45?'высокая':v>=.30?'средняя':'низкая'}
+async function runQualityAudit(){
+ const box=$('qualityResult');
+ if(draws.length<120){box.innerHTML=`<div class="row small">Для честной проверки нужно хотя бы 120 тиражей. Сейчас: ${draws.length}.</div>`;return}
+ $('qualityBtn').disabled=true;$('qualityBtn').textContent='⏳ Проверяю…';
+ box.innerHTML='<div class="row small">Проверяю исторические прогнозы без заглядывания в будущее…</div>';
+ await new Promise(r=>setTimeout(r,40));
+ try{
+  const maxTests=30,start=Math.max(60,draws.length-1-maxTests),results=[];
+  for(let target=start;target<draws.length-1;target++){
+   const p=buildPlusPrediction(target);if(!p)continue;
+   const actual=draws[target+1],a=analysis(actual),set=new Set(actual.balls),rank=p.columns.indexOf(a.winner)+1;
+   const hits=p.numbers.filter(n=>set.has(n)).length,k1=p.k1.filter(n=>set.has(n)).length,k2=p.k2.filter(n=>set.has(n)).length;
+   results.push({rank,hits,k1,k2,confidence:p.confidence,score:p.confidenceScore,draw:actual.draw});
+   if(results.length%5===0)await new Promise(r=>setTimeout(r,0));
+  }
+  if(!results.length){box.innerHTML='<div class="row small">Не удалось построить исторические проверки.</div>';return}
+  const n=results.length,first=results.filter(x=>x.rank===1).length,top4=results.filter(x=>x.rank>0).length;
+  const avgHits=results.reduce((a,x)=>a+x.hits,0)/n,avgBestK5=results.reduce((a,x)=>a+Math.max(x.k1,x.k2),0)/n;
+  const strong=results.filter(x=>x.confidence==='высокая'),strongTop4=strong.length?strong.filter(x=>x.rank>0).length/strong.length:0;
+  const recent=results.slice(-8).reverse().map(x=>`<span>№${x.draw}: ${x.rank?`столб ${x.rank}-е место`:'столб мимо'}, числа ${x.hits}/10</span>`).join('');
+  const quality=(top4/n)*.55+(first/n)*.25+Math.min(1,avgHits/4)*.20;
+  box.innerHTML=`<div class="section"><span>📊 Честная проверка качества</span></div>
+   <div class="row"><b>Проверено: ${n} прошлых тиражей</b><br><span class="small">Для каждого теста использовались только данные, которые существовали до проверяемого тиража.</span></div>
+   <div class="tools" style="grid-template-columns:1fr 1fr">
+    <div class="tool" style="text-align:center"><div class="small">1-е место</div><div style="font-size:23px;font-weight:950">${first}/${n}</div><div>${Math.round(first/n*100)}%</div></div>
+    <div class="tool" style="text-align:center"><div class="small">В четвёрке</div><div style="font-size:23px;font-weight:950">${top4}/${n}</div><div>${Math.round(top4/n*100)}%</div></div>
+    <div class="tool" style="text-align:center"><div class="small">Числа</div><div style="font-size:23px;font-weight:950">${avgHits.toFixed(1)}/10</div><div>в среднем</div></div>
+    <div class="tool" style="text-align:center"><div class="small">Лучший К5</div><div style="font-size:23px;font-weight:950">${avgBestK5.toFixed(1)}/5</div><div>в среднем</div></div>
+   </div>
+   <div class="row"><b>Оценка модели: ${qualityBand(quality)} (${Math.round(quality*100)}%)</b><br><span class="small">Высокая уверенность: ${strong.length?`${Math.round(strongTop4*100)}% попаданий в четвёрку на ${strong.length} тестах`:'пока недостаточно случаев'}.</span></div>
+   <div class="freq">${recent}</div>
+   <div class="row small"><b>Важно:</b> это статистика, а не гарантия будущего результата. Она нужна, чтобы сравнивать версии алгоритма без подгонки.</div>`;
+ }finally{$('qualityBtn').disabled=false;$('qualityBtn').textContent='📊 Проверить качество на прошлом'}
+}
+
+function render(){
+ $('status').textContent=draws.length?`v7.1 · база: ${draws.length.toLocaleString('ru-RU')} · последний №${draws.at(-1).draw}`:'Версия v7.1 · база: 0';
+ if(draws.length&&!$('chainDate').value)$('chainDate').value=draws.at(-1).date;
+ renderCards();renderChains();renderArchive();renderLivePredictionCheck()
+}
+async function update(){
+ const url=(localStorage.getItem('pozitron_v5_url')||'https://pozitron-keno-v3.netlify.app/.netlify/functions/fresh-draws').trim();
+ if(!url){$('status').textContent='Источник не настроен — нажмите ⚙';return}
+ $('status').textContent='Проверяю новые тиражи…';
+ try{
+  const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
+  const arr=parse(await r.text());if(!arr.length)throw new Error('нет распознанных тиражей');
+  const added=merge(arr);render();$('status').textContent=`Добавлено ${added} · всего ${draws.length}`
+ }catch(e){render();$('status').textContent='Обновление не выполнено: '+e.message}
+}
+function auto(){
+ clearInterval(timer);timer=null;
+ const ms=Number(localStorage.getItem('pozitron_v5_interval')||300000);
+ if(ms)timer=setInterval(update,ms)
+}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('on'));b.classList.add('on');mode=b.dataset.mode;renderCards()});
+document.querySelectorAll('[data-panel]').forEach(b=>b.onclick=()=>$(b.dataset.panel).classList.toggle('show'));
+document.querySelectorAll('[data-foot]').forEach(b=>b.onclick=()=>{const p=$(b.dataset.foot);p.classList.add('show');p.scrollIntoView({behavior:'smooth'})});
+$('runPlusBtn').onclick=runAnalogsPlus;
+$('qualityBtn').onclick=runQualityAudit;
+$('findBtn').onclick=()=>{const n=Number($('searchDraw').value),d=draws.find(x=>x.draw===n);$('searchResult').innerHTML=d?`<div class="row"><b>№${d.draw}</b> — ${showDate(d.date)} ${d.time}<br>${d.balls.map(pad).join(' ')}</div>`:'<div class="row small">Тираж не найден.</div>'};
+$('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const added=merge(parse(r.result));render();$('status').textContent=`Импорт: добавлено ${added} · всего ${draws.length}`};r.readAsText(f,'UTF-8')};
+$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({version:'7.1',exportedAt:new Date().toISOString(),draws},null,2)],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='ПОЗИТРОН_КЕНО_v7_1_БАЗА.json';a.click();URL.revokeObjectURL(u)};
+$('sync').onclick=update;$('sync2').onclick=update;
+$('settingsBtn').onclick=()=>{$('sourceUrl').value=localStorage.getItem('pozitron_v5_url')||'https://pozitron-keno-v3.netlify.app/.netlify/functions/fresh-draws';$('interval').value=localStorage.getItem('pozitron_v5_interval')||'300000';$('settings').showModal()};
+$('saveSettings').onclick=()=>{localStorage.setItem('pozitron_v5_url',$('sourceUrl').value.trim());localStorage.setItem('pozitron_v5_interval',$('interval').value);auto()};
+$('chainDate').onchange=renderChains;
+load();render();auto();setTimeout(update,800);
+</script>
+</body>
+</html>
