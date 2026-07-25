@@ -83,6 +83,27 @@ input,select{width:100%;padding:9px;background:#0a1422;color:var(--text);border:
 dialog{width:calc(100% - 20px);max-width:700px;background:#0e1b2d;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:12px}
 dialog::backdrop{background:rgba(0,0,0,.72)}
 @media(min-width:620px){.numbers{grid-template-columns:repeat(10,1fr)}}
+.forecast-history-toggle {
+  width: 100%;
+  margin: 12px 0 8px;
+  padding: 16px 18px;
+  border: 1px solid #304a68;
+  border-radius: 16px;
+  background: #13243a;
+  color: #ffffff;
+  font-size: 21px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.forecast-history-toggle:active {
+  transform: scale(0.99);
+  background: #192d47;
+}
+#forecastHistoryContent[hidden] {
+  display: none !important;
+}
+
 </style>
 </head>
 <body>
@@ -143,7 +164,17 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
     <div id="plusResult"></div>
     <div id="qualityResult"></div>
     <div id="liveCheckResult"></div>
-    <div id="predictionHistory" class="pred-history"></div>
+    <button
+      id="forecastHistoryToggle"
+      class="forecast-history-toggle"
+      type="button"
+      aria-expanded="false"
+    >
+      📋 Прогнозы 5 тир ▶
+    </button>
+    <div id="forecastHistoryContent" hidden>
+      <div id="predictionHistory" class="pred-history"></div>
+    </div>
   </section>
 
   <section id="archivePanel" class="card panel">
@@ -657,6 +688,16 @@ $('sync').onclick=update;$('sync2').onclick=update;
 $('settingsBtn').onclick=()=>{$('sourceUrl').value=localStorage.getItem('pozitron_v5_url')||'https://pozitron-keno-v3.netlify.app/.netlify/functions/fresh-draws';$('interval').value=localStorage.getItem('pozitron_v5_interval')||'300000';$('settings').showModal()};
 $('saveSettings').onclick=()=>{localStorage.setItem('pozitron_v5_url',$('sourceUrl').value.trim());localStorage.setItem('pozitron_v5_interval',$('interval').value);auto()};
 $('chainDate').onchange=renderChains;
+const forecastHistoryToggle=$('forecastHistoryToggle');
+const forecastHistoryContent=$('forecastHistoryContent');
+if(forecastHistoryToggle&&forecastHistoryContent){
+ forecastHistoryToggle.onclick=()=>{
+  const isOpen=!forecastHistoryContent.hidden;
+  forecastHistoryContent.hidden=isOpen;
+  forecastHistoryToggle.setAttribute('aria-expanded',String(!isOpen));
+  forecastHistoryToggle.textContent=isOpen?'📋 Прогнозы 5 тир ▶':'📋 Прогнозы 5 тир ▼';
+ };
+}
 load();render();auto();setTimeout(update,800);
 </script>
 </body>
