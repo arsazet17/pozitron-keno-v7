@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#08111f">
 <title>ПОЗИТРОН КЕНО v7.1</title>
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest?v=712">
 
-<link rel="icon" type="image/png" sizes="512x512" href="icon-v71.png">
-<link rel="apple-touch-icon" href="icon-v71.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-v71.png?v=712">
+<link rel="apple-touch-icon" href="icon-v71.png?v=712">
 
 <script defer src="https://cloud.umami.is/script.js" data-website-id="b80743bf-b74e-43e8-a68a-004576d36ef1"></script>
 
@@ -112,7 +112,7 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
   <div class="top">
     <div>
       <div class="brand">🎯 ПОЗИТРОН КЕНО v7.1</div>
-      <div style="display:inline-block;margin-top:6px;padding:5px 10px;border:2px solid #4ade80;border-radius:10px;color:#4ade80;font-weight:900">НОВАЯ СБОРКА 7.1 · AI-АНАЛИЗАТОР</div>
+      <div style="display:inline-block;margin-top:6px;padding:5px 10px;border:2px solid #4ade80;border-radius:10px;color:#4ade80;font-weight:900">СБОРКА 7.1.2 · ЧЁТНАЯ ВОЛНА · 4 ТРОЙКИ</div>
       <div id="status" class="sub">v7.1 · AI-анализатор и честная проверка · база загружается…</div>
     </div>
     <div>
@@ -206,11 +206,11 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
   <form method="dialog">
     <div class="section" style="margin-top:0"><span>Настройки обновления</span><button class="icon">✕</button></div>
     <label class="small">Адрес источника тиражей</label>
-    <input id="sourceUrl" value="https://pozitron-keno-v3.netlify.app/.netlify/functions/fresh-draws">
+    <input id="sourceUrl" value="./keno-history-v71.json">
     <div style="height:8px"></div>
     <label class="small">Проверять автоматически</label>
     <select id="interval">
-      <option value="0">Выключено</option>
+      <option value="0" selected>Выключено</option>
       <option value="300000">Каждые 5 минут</option>
       <option value="600000">Каждые 10 минут</option>
       <option value="1800000">Каждые 30 минут</option>
@@ -228,6 +228,61 @@ const pad=n=>String(n).padStart(2,'0');
 const column=n=>n%10===0?10:n%10;
 let draws=[],mode='fall',timer=null;
 const analysisCache=new WeakMap();
+const BUILD_ID='7.1.2-even-wave-20260731';
+const DEFAULT_DRAW_SOURCE='./keno-history-v71.json';
+const SOURCE_RESET_KEY='pozitron_v71_source_reset_712';
+const LEGACY_SOURCE_PARTS=['pozitron-keno-v3.netlify.app','pozitron-keno-v72','raw.githubusercontent.com/arsazet17/pozitron-keno-v72'];
+let archiveSignature='';
+
+function configuredDrawSource(){
+ let saved=String(localStorage.getItem('pozitron_v5_url')||'').trim();
+ const mustReset=!localStorage.getItem(SOURCE_RESET_KEY)||!saved||LEGACY_SOURCE_PARTS.some(part=>saved.includes(part));
+ if(mustReset){
+  saved=DEFAULT_DRAW_SOURCE;
+  localStorage.setItem('pozitron_v5_url',saved);
+  localStorage.setItem('pozitron_v5_interval','0');
+  localStorage.setItem(SOURCE_RESET_KEY,BUILD_ID);
+ }
+ return saved
+}
+function drawSourceCandidates(){
+ return [...new Set([configuredDrawSource(),DEFAULT_DRAW_SOURCE].filter(Boolean))]
+}
+async function fetchTextWithTimeout(url,cache='no-store',timeoutMs=20000){
+ const controller=new AbortController();
+ const timerId=setTimeout(()=>controller.abort(),timeoutMs);
+ try{
+  const response=await fetch(url,{cache,signal:controller.signal});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  return await response.text()
+ }finally{clearTimeout(timerId)}
+}
+async function fetchDrawHistory(){
+ let lastError=new Error('источник недоступен');
+ for(const url of drawSourceCandidates()){
+  try{
+   const items=parse(await fetchTextWithTimeout(url,'no-store'));
+   if(!items.length)throw new Error('нет распознанных тиражей');
+   return {items,url}
+  }catch(error){lastError=error}
+ }
+ throw lastError
+}
+async function ensureAppBase(){
+ if(draws.length)return draws.length;
+ $('status').textContent='Загружаю встроенную базу v7.1…';
+ try{
+  const items=parse(await fetchTextWithTimeout(DEFAULT_DRAW_SOURCE,'force-cache',30000));
+  if(!items.length)throw new Error('база не распознана');
+  draws=dedupe(items);
+  render();
+  $('status').textContent=`v7.1.2 · база: ${draws.length.toLocaleString('ru-RU')} · последний №${draws.at(-1).draw}`;
+ }catch(error){
+  $('status').textContent='База не загрузилась: '+error.message;
+ }
+ return draws.length
+}
+window.ensureAppBase=ensureAppBase;
 
 function normDate(v){
  v=String(v||'').trim();
@@ -291,9 +346,9 @@ function analysis(d){
  analysisCache.set(d,result);
  return result
 }
-function save(){localStorage.setItem('pozitron_v5_draws',JSON.stringify(draws))}
+function save(){try{localStorage.setItem('pozitron_v5_draws',JSON.stringify(draws))}catch(error){console.warn('База не помещается в localStorage:',error.message)}}
 function load(){try{draws=dedupe(JSON.parse(localStorage.getItem('pozitron_v5_draws')||'[]'))}catch{draws=[]}}
-function merge(a){const before=draws.length;draws=dedupe([...draws,...a]);save();return draws.length-before}
+function merge(a,persist=true){const before=draws.length;draws=dedupe([...draws,...a]);archiveSignature='';if(persist)save();return draws.length-before}
 function transitions(i){if(i<=0)return new Set();return new Set(draws[i-1].balls.filter(n=>draws[i].balls.includes(n)))}
 function ball(d,i,p){
  const asc=[...d.balls].sort((a,b)=>a-b);
@@ -362,15 +417,20 @@ function archiveDateTimeValue(d){
  if(parts[0]>1900){[y,m,day]=parts}else{[day,m,y]=parts;if(y<100)y+=2000}
  return new Date(y||2000,(m||1)-1,day||1,0,0,0).getTime()+minutes(d.time)
 }
-function renderArchive(){
- const m=new Map();
- draws.forEach(d=>{const k=archiveDateKey(d);m.set(k,(m.get(k)||0)+1)});
- const rows=[...m.entries()].sort((a,b)=>{
-  const da=draws.find(d=>archiveDateKey(d)===a[0]),db=draws.find(d=>archiveDateKey(d)===b[0]);
-  return archiveDateTimeValue(db)-archiveDateTimeValue(da)
+function renderArchive(force=false){
+ const signature=draws.length?`${draws.length}:${draws[0].draw}:${draws.at(-1).draw}`:'0';
+ if(!force&&archiveSignature===signature&&$('archive').innerHTML.trim())return;
+ archiveSignature=signature;
+ const days=new Map();
+ draws.forEach(d=>{
+  const k=archiveDateKey(d);
+  const row=days.get(k);
+  if(row)row.count+=1;
+  else days.set(k,{count:1,stamp:archiveDateTimeValue(d)});
  });
+ const rows=[...days.entries()].sort((a,b)=>b[1].stamp-a[1].stamp);
  $('archive').innerHTML=`<div class="section" style="margin-top:0"><span>Архив по датам</span></div>`+
-  (rows.map(([date,n])=>`<button type="button" class="row archive-date" data-archive-date="${date}" style="width:100%;color:inherit;text-align:left"><b>${showDate(date)}</b><span style="float:right">${n} тиражей ›</span></button>`).join('')||'<p class="small">Архив пуст.</p>');
+  (rows.map(([date,x])=>`<button type="button" class="row archive-date" data-archive-date="${date}" style="width:100%;color:inherit;text-align:left"><b>${showDate(date)}</b><span style="float:right">${x.count} тиражей ›</span></button>`).join('')||'<p class="small">Архив пуст.</p>');
  document.querySelectorAll('[data-archive-date]').forEach(b=>b.onclick=()=>renderArchiveDay(b.dataset.archiveDate))
 }
 function renderArchiveDay(date){
@@ -662,34 +722,38 @@ async function runQualityAudit(){
 function render(){
  $('status').textContent=draws.length?`v7.1 · база: ${draws.length.toLocaleString('ru-RU')} · последний №${draws.at(-1).draw}`:'Версия v7.1 · база: 0';
  if(draws.length&&!$('chainDate').value)$('chainDate').value=draws.at(-1).date;
- renderCards();renderChains();renderArchive();renderLivePredictionCheck();renderPredictionHistory()
+ renderCards();renderChains();if($('archivePanel').classList.contains('show'))renderArchive();renderLivePredictionCheck();renderPredictionHistory()
 }
 async function update(){
- const url=(localStorage.getItem('pozitron_v5_url')||'https://pozitron-keno-v3.netlify.app/.netlify/functions/fresh-draws').trim();
- if(!url){$('status').textContent='Источник не настроен — нажмите ⚙';return}
  $('status').textContent='Проверяю новые тиражи…';
  try{
-  const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
-  const arr=parse(await r.text());if(!arr.length)throw new Error('нет распознанных тиражей');
-  const added=merge(arr);render();$('status').textContent=`Добавлено ${added} · всего ${draws.length}`
- }catch(e){render();$('status').textContent='Обновление не выполнено: '+e.message}
+  const result=await fetchDrawHistory();
+  const added=merge(result.items,false);
+  render();
+  $('status').textContent=added?`Добавлено ${added} · всего ${draws.length}`:`База актуальна · всего ${draws.length} · v7.1.2`
+ }catch(e){
+  render();
+  $('status').textContent=draws.length
+   ?`v7.1 · база сохранена: ${draws.length.toLocaleString('ru-RU')} · обновление временно недоступно`
+   :'Нет связи с базой. Откройте «База» и импортируйте JSON.'
+ }
 }
 function auto(){
  clearInterval(timer);timer=null;
- const ms=Number(localStorage.getItem('pozitron_v5_interval')||300000);
+ const ms=Number(localStorage.getItem('pozitron_v5_interval')||0);
  if(ms)timer=setInterval(update,ms)
 }
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('on'));b.classList.add('on');mode=b.dataset.mode;renderCards()});
-document.querySelectorAll('[data-panel]').forEach(b=>b.onclick=()=>$(b.dataset.panel).classList.toggle('show'));
-document.querySelectorAll('[data-foot]').forEach(b=>b.onclick=()=>{const p=$(b.dataset.foot);p.classList.add('show');p.scrollIntoView({behavior:'smooth'})});
+document.querySelectorAll('[data-panel]').forEach(b=>b.onclick=()=>{const p=$(b.dataset.panel);p.classList.toggle('show');if(p.classList.contains('show')&&b.dataset.panel==='archivePanel')renderArchive()});
+document.querySelectorAll('[data-foot]').forEach(b=>b.onclick=()=>{const p=$(b.dataset.foot);p.classList.add('show');if(b.dataset.foot==='archivePanel')renderArchive();p.scrollIntoView({behavior:'smooth'})});
 $('runPlusBtn').onclick=runAnalogsPlus;
 $('qualityBtn').onclick=runQualityAudit;
 $('findBtn').onclick=()=>{const n=Number($('searchDraw').value),d=draws.find(x=>x.draw===n);$('searchResult').innerHTML=d?`<div class="row"><b>№${d.draw}</b> — ${showDate(d.date)} ${d.time}<br>${d.balls.map(pad).join(' ')}</div>`:'<div class="row small">Тираж не найден.</div>'};
 $('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const added=merge(parse(r.result));render();$('status').textContent=`Импорт: добавлено ${added} · всего ${draws.length}`};r.readAsText(f,'UTF-8')};
 $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({version:'7.1',exportedAt:new Date().toISOString(),draws},null,2)],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='ПОЗИТРОН_КЕНО_v7_1_БАЗА.json';a.click();URL.revokeObjectURL(u)};
 $('sync').onclick=update;$('sync2').onclick=update;
-$('settingsBtn').onclick=()=>{$('sourceUrl').value=localStorage.getItem('pozitron_v5_url')||'https://pozitron-keno-v3.netlify.app/.netlify/functions/fresh-draws';$('interval').value=localStorage.getItem('pozitron_v5_interval')||'300000';$('settings').showModal()};
-$('saveSettings').onclick=()=>{localStorage.setItem('pozitron_v5_url',$('sourceUrl').value.trim());localStorage.setItem('pozitron_v5_interval',$('interval').value);auto()};
+$('settingsBtn').onclick=()=>{$('sourceUrl').value=configuredDrawSource();$('interval').value=localStorage.getItem('pozitron_v5_interval')||'0';$('settings').showModal()};
+$('saveSettings').onclick=()=>{localStorage.setItem('pozitron_v5_url',$('sourceUrl').value.trim()||DEFAULT_DRAW_SOURCE);localStorage.setItem('pozitron_v5_interval',$('interval').value);auto()};
 $('chainDate').onchange=renderChains;
 const forecastHistoryToggle=$('forecastHistoryToggle');
 const forecastHistoryContent=$('forecastHistoryContent');
@@ -701,9 +765,9 @@ if(forecastHistoryToggle&&forecastHistoryContent){
   forecastHistoryToggle.textContent=isOpen?'📋 Прогнозы 5 тир ▶':'📋 Прогнозы 5 тир ▼';
  };
 }
-load();render();auto();setTimeout(update,800);
+configuredDrawSource();load();render();auto();if(!draws.length)setTimeout(ensureAppBase,60);
 </script>
-<script src="max-retro.js"></script>
-<script src="even-wave.js"></script>
+<script src="max-retro.js?v=712"></script>
+<script src="even-wave.js?v=712"></script>
 </body>
 </html>

@@ -15,7 +15,8 @@
   const RUN_ID = 'runEvenWaveBtn';
   const AUDIT_BTN_ID = 'auditEvenWaveBtn';
   const BASE_STATUS_ID = 'evenWaveBaseStatus';
-  const BASE_URL = 'keno-history-v71.json';
+  const BASE_URL = 'keno-history-v71.json?v=712';
+  const MODEL_URL = 'even-wave-model-v71.json?v=712';
   const PREDICTIONS_KEY = 'pozitron_v71_even_wave_predictions_v1';
   const AUDIT_CACHE_KEY = 'pozitron_v71_even_wave_audit_v1';
 
@@ -31,6 +32,8 @@
   let matrixCache = null;
   let liveTablesCache = null;
   let openingStarted = false;
+  let bundledModel = null;
+  let bundledModelPromise = null;
 
   function el(id) {
     return document.getElementById(id);
@@ -38,6 +41,29 @@
 
   function sleepFrame() {
     return new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  function tableFromJson(row) {
+    return { hits: Uint32Array.from(row?.hits || []), counts: Uint32Array.from(row?.counts || []) };
+  }
+
+  async function loadBundledModel() {
+    if (bundledModel) return bundledModel;
+    if (bundledModelPromise) return bundledModelPromise;
+    bundledModelPromise = fetch(MODEL_URL, { cache: 'force-cache' })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(model => {
+        bundledModel = model;
+        return model;
+      })
+      .catch(error => {
+        console.warn('Предрасчёт Чётной волны недоступен:', error.message);
+        return null;
+      });
+    return bundledModelPromise;
   }
 
   function clamp(value, min, max) {
@@ -417,8 +443,15 @@
 
   async function getLiveTables(matrix, progress) {
     if (liveTablesCache?.signature === matrix.signature) return liveTablesCache.tables;
+    const model = await loadBundledModel();
+    if (Array.isArray(model?.liveTables) && model.liveTables.length === FEATURE_SIZES.length) {
+      const tables = model.liveTables.map(tableFromJson);
+      liveTablesCache = { signature: matrix.signature, tables, source: 'bundled' };
+      progress?.(1, 1);
+      return tables;
+    }
     const tables = await trainTables(matrix, 0, matrix.n - 1, progress);
-    liveTablesCache = { signature: matrix.signature, tables };
+    liveTablesCache = { signature: matrix.signature, tables, source: 'calculated' };
     return tables;
   }
 
@@ -554,6 +587,13 @@
       renderAuditResult(cached);
       return;
     }
+    if (!force) {
+      const model = await loadBundledModel();
+      if (model?.audit) {
+        renderAuditResult(model.audit);
+        return;
+      }
+    }
 
     const split = Math.floor(matrix.n * 0.70);
     box.innerHTML = '<div class="row small">⏳ Этап 1/2: калибрую признаки на первых 70% архива…</div>';
@@ -636,7 +676,11 @@
   async function ensureBundledBase() {
     const status = el(BASE_STATUS_ID);
     if (!status) return;
-    const current = Array.isArray(draws) ? draws.length : 0;
+    let current = Array.isArray(draws) ? draws.length : 0;
+    if (current < 1000 && typeof window.ensureAppBase === 'function') {
+      await window.ensureAppBase();
+      current = Array.isArray(draws) ? draws.length : 0;
+    }
     if (current >= 1000) {
       status.innerHTML = `✅ Общая база приложения: <b>${current.toLocaleString('ru-RU')}</b> тиражей.`;
       return;
@@ -644,14 +688,14 @@
 
     status.textContent = '⏳ Подключаю архив, вложенный в сборку…';
     try {
-      const response = await fetch(BASE_URL, { cache: 'no-store' });
+      const response = await fetch(BASE_URL, { cache: 'force-cache' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const text = await response.text();
       const imported = typeof parse === 'function' ? parse(text) : [];
       if (!imported.length) throw new Error('архив не распознан');
       let added = 0;
       try {
-        added = typeof merge === 'function' ? merge(imported) : 0;
+        added = typeof merge === 'function' ? merge(imported, false) : 0;
       } catch (error) {
         // Даже при заполненном localStorage база остаётся доступна в текущем сеансе.
         if (typeof dedupe === 'function') draws = dedupe([...(draws || []), ...imported]);
@@ -735,6 +779,7 @@
       if (opening) {
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
         await ensureBundledBase();
+        await loadBundledModel();
         if (!openingStarted) {
           openingStarted = true;
           await runForecast();
