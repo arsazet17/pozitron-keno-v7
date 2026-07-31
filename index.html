@@ -7,9 +7,8 @@
 <title>ПОЗИТРОН КЕНО v7.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 
-<link rel="icon" type="image/svg+xml" href="assets/icon.svg">
-<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
-<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-v71.png">
+<link rel="apple-touch-icon" href="icon-v71.png">
 
 <script defer src="https://cloud.umami.is/script.js" data-website-id="b80743bf-b74e-43e8-a68a-004576d36ef1"></script>
 
@@ -192,7 +191,7 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
   </section>
 
   <section id="infoPanel" class="card panel">
-    <p class="small">Версия v7.1: AI-анализатор сравнивает группу исторических ситуаций по хвостам 2–3–4, распределению столбов, числам, переходам, сумме, чётности, одиночным и пустым столбам. Встроенная проверка качества выполняется только на прошлом и не заглядывает в будущие тиражи. Каждый живой прогноз фиксируется только на один тираж и затем закрывается.</p>
+    <p class="small">Версия v7.1: AI-анализатор сравнивает группу исторических ситуаций по хвостам 2–3–4, распределению столбов, числам, переходам, сумме, чётности, одиночным и пустым столбам. Отдельный модуль «Чётная волна» формирует четыре тройки из 12 уникальных чётных чисел и проверяет их на следующем тираже и через один. Встроенная проверка качества выполняется только на прошлом и не заглядывает в будущие тиражи. Каждый живой прогноз фиксируется только на один тираж и затем закрывается.</p>
   </section>
 </div>
 
@@ -234,6 +233,8 @@ function normDate(v){
  v=String(v||'').trim();
  let m=v.match(/^(\d{2})[.\-/](\d{2})[.\-/](\d{4})$/);
  if(m)return `${m[3]}-${m[2]}-${m[1]}`;
+ m=v.match(/^(\d{2})[.\-/](\d{2})[.\-/](\d{2})$/);
+ if(m)return `20${m[3]}-${m[2]}-${m[1]}`;
  m=v.match(/^(\d{4})[.\-/](\d{2})[.\-/](\d{2})$/);
  if(m)return `${m[1]}-${m[2]}-${m[3]}`;
  return v.slice(0,10);
@@ -703,5 +704,6 @@ if(forecastHistoryToggle&&forecastHistoryContent){
 load();render();auto();setTimeout(update,800);
 </script>
 <script src="max-retro.js"></script>
+<script src="even-wave.js"></script>
 </body>
 </html>

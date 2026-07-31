@@ -1,5 +1,5 @@
 {
-  "name": "ПОЗИТРОН КЕНО v7.1 AI",
+  "name": "ПОЗИТРОН КЕНО v7.1 · Чётная волна",
   "short_name": "КЕНО v7.1",
   "start_url": "./",
   "scope": "./",
@@ -9,7 +9,7 @@
   "lang": "ru",
   "icons": [
     {
-"src": "icon-v71.png",
+      "src": "icon-v71-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
