@@ -1,9 +1,9 @@
-name: Update KENO v7.1 history
+name: KENO v7.1 Auto Update
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '7,37 * * * *'
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
@@ -16,14 +16,20 @@ jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Update history
+
+      - name: Update KENO v7.1 history
         run: node keno-update-v71.js
-      - name: Commit changes
+
+      - name: Commit new draws
         run: |
           if git diff --quiet -- keno-history-v71.json keno-status-v71.json; then
             echo "No new draws"
