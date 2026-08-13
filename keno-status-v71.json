@@ -1,9 +1,10 @@
 {
-  "version": "7.1.3",
-  "source": "https://lucky-numbers.ru/lottery/ru/keno2",
-  "updatedAt": "2026-08-10T08:10:40.722Z",
-  "drawsStored": 30542,
-  "latestDraw": 325223,
-  "latestDate": "10.08.26",
-  "latestTime": "11:02"
+  "version": "7.1.4",
+  "source": "https://m.stoloto.ru/keno2/archive/",
+  "updatedAt": "2026-08-13T13:39:12.320Z",
+  "drawsStored": 30754,
+  "latestDraw": 325435,
+  "latestDate": "13.08.26",
+  "latestTime": "16:17",
+  "verification": "double"
 }
