@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#08111f">
-<title>ПОЗИТРОН КЕНО v7.1</title>
-<link rel="manifest" href="manifest.webmanifest?v=712">
+<title>ПОЗИТРОН КЕНО v7.2.1 — LIVE SYNC</title>
+<link rel="manifest" href="manifest.webmanifest">
 
-<link rel="icon" type="image/png" sizes="512x512" href="icon-v71.png?v=712">
-<link rel="apple-touch-icon" href="icon-v71.png?v=712">
+<link rel="icon" type="image/svg+xml" href="icon-v72.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-v72.png">
+<link rel="apple-touch-icon" href="icon-v72.png">
 
 <script defer src="https://cloud.umami.is/script.js" data-website-id="b80743bf-b74e-43e8-a68a-004576d36ef1"></script>
 
@@ -62,6 +63,8 @@ button,input,select{font:inherit}
 .break{margin-top:7px;padding:6px;border-radius:8px;text-align:center;background:#302812;border:1px solid #6e5b20;color:#ffe48b;font-weight:850}
 .open{font-size:12px;color:var(--muted);margin-top:6px}
 .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:6px}
+.tools.main-tools{grid-template-columns:repeat(3,minmax(0,1fr))}
+.main-tools .tool{min-width:0;min-height:48px;font-size:13px;line-height:1.2;white-space:normal}
 .tool{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:9px 3px;font-size:12px;font-weight:800}
 .panel{display:none}.panel.show{display:block}
 .row{background:#101f33;border:1px solid #263e5b;border-radius:9px;padding:9px;margin-top:6px;font-size:13px}
@@ -111,9 +114,9 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
 <div class="app">
   <div class="top">
     <div>
-      <div class="brand">🎯 ПОЗИТРОН КЕНО v7.1</div>
-      <div style="display:inline-block;margin-top:6px;padding:5px 10px;border:2px solid #4ade80;border-radius:10px;color:#4ade80;font-weight:900">СБОРКА 7.1.3 · АВТООБНОВЛЕНИЕ · 4 ТРОЙКИ</div>
-      <div id="status" class="sub">v7.1 · AI-анализатор и честная проверка · база загружается…</div>
+      <div class="brand">🎯 ПОЗИТРОН КЕНО v7.2.1</div>
+      <div style="display:inline-block;margin-top:6px;padding:5px 10px;border:2px solid #4ade80;border-radius:10px;color:#4ade80;font-weight:900">СБОРКА 7.2.1 · LIVE AI ПЕРЕХОДОВ</div>
+      <div id="status" class="sub">v7.2.1 · AI переходов и ретропоиск · база загружается…</div>
     </div>
     <div>
       <button id="sync" class="icon">↻</button>
@@ -128,6 +131,7 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
   </div>
 
   <div class="sub" style="margin:0 2px 8px">🔸 реальное переходное число из предыдущего тиража · зелёная линия — одно и то же число стоит на одинаковом месте в выпадении и возрастании</div>
+  <div class="row small" style="margin:0 0 9px;border-color:#4b6f46"><b>v7.2.1:</b> переходы — главный анализ. Диапазоны по 4 числа, шаговость, чередование и заполнение архива учитываются в новом «AI Переходов».</div>
 
   <main id="cards"></main>
 
@@ -138,13 +142,21 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
   <div id="chains"></div>
 
   <div class="section"><span>Инструменты</span></div>
-  <div class="tools">
+  <div class="tools main-tools">
     <button class="tool" data-panel="searchPanel">🔍 Поиск</button>
     <button class="tool" data-panel="analogsPanel">🎯 Аналоги+</button>
     <button class="tool" data-panel="archivePanel">📅 Архив</button>
-    <button class="tool" data-panel="dataPanel">💾 База</button>
-    <button class="tool" data-panel="infoPanel">ℹ️ О v7.1</button>
+    <button id="sprintBtn" class="tool" type="button">🏃 Спринт</button>
+    <button id="marathonBtn" class="tool" type="button">🐢 Марафон</button>
+    <button id="maxRetroToolBtn" class="tool" type="button">🧠 AI Переходов ▶</button>
   </div>
+
+  <section id="sprintMarathonPanel" class="card panel" aria-live="polite">
+    <div class="sm-title">🏃 Спринт / 🐢 Марафон</div>
+    <div id="sprintMarathonResult">
+      <div class="small">Выберите «Спринт» или «Марафон».</div>
+    </div>
+  </section>
 
   <section id="searchPanel" class="card panel">
     <div class="flex">
@@ -191,7 +203,7 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
   </section>
 
   <section id="infoPanel" class="card panel">
-    <p class="small">Версия v7.1: AI-анализатор сравнивает группу исторических ситуаций по хвостам 2–3–4, распределению столбов, числам, переходам, сумме, чётности, одиночным и пустым столбам. Отдельный модуль «Чётная волна» формирует четыре тройки из 12 уникальных чётных чисел и проверяет их на следующем тираже и через один. Встроенная проверка качества выполняется только на прошлом и не заглядывает в будущие тиражи. Каждый живой прогноз фиксируется только на один тираж и затем закрывается.</p>
+    <p class="small">Версия v7.2.1: основной упор сделан на переходы чисел между тиражами, длины цепочек, шаговость и чередование внутри диапазонов. Столбы, одиночные и пустые позиции сохранены как дополнительные признаки. Ретропоиск сравнивает текущую картину со всем архивом и показывает, что происходило следующим.</p>
   </section>
 </div>
 
@@ -206,12 +218,12 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
   <form method="dialog">
     <div class="section" style="margin-top:0"><span>Настройки обновления</span><button class="icon">✕</button></div>
     <label class="small">Адрес источника тиражей</label>
-    <input id="sourceUrl" value="./keno-history-v71.json">
+    <input id="sourceUrl" value="./keno-history.json">
     <div style="height:8px"></div>
     <label class="small">Проверять автоматически</label>
     <select id="interval">
       <option value="0">Выключено</option>
-      <option value="300000" selected>Каждые 5 минут</option>
+      <option value="300000">Каждые 5 минут</option>
       <option value="600000">Каждые 10 минут</option>
       <option value="1800000">Каждые 30 минут</option>
     </select>
@@ -228,73 +240,77 @@ const pad=n=>String(n).padStart(2,'0');
 const column=n=>n%10===0?10:n%10;
 let draws=[],mode='fall',timer=null;
 const analysisCache=new WeakMap();
-const BUILD_ID='7.1.3-auto-update-20260802';
-const DEFAULT_DRAW_SOURCE='./keno-history-v71.json';
-const SOURCE_RESET_KEY='pozitron_v71_source_reset_713';
-const LEGACY_SOURCE_PARTS=['pozitron-keno-v3.netlify.app','pozitron-keno-v72','raw.githubusercontent.com/arsazet17/pozitron-keno-v72'];
-let archiveSignature='';
+const DEFAULT_DRAW_SOURCE='./keno-history.json';
+const LEGACY_SOURCE_PART='pozitron-keno-v3.netlify.app';
+const CACHE_FIX_KEY='pozitron_v72_cache_fix_20260729_2';
 
 function configuredDrawSource(){
- let saved=String(localStorage.getItem('pozitron_v5_url')||'').trim();
- const mustReset=!localStorage.getItem(SOURCE_RESET_KEY)||!saved||LEGACY_SOURCE_PARTS.some(part=>saved.includes(part));
- if(mustReset){
-  saved=DEFAULT_DRAW_SOURCE;
-  localStorage.setItem('pozitron_v5_url',saved);
-  localStorage.setItem('pozitron_v5_interval','300000');
-  localStorage.setItem(SOURCE_RESET_KEY,BUILD_ID);
+ const saved=String(localStorage.getItem('pozitron_v5_url')||'').trim();
+ if(!saved||saved.includes(LEGACY_SOURCE_PART)){
+  localStorage.setItem('pozitron_v5_url',DEFAULT_DRAW_SOURCE);
+  return DEFAULT_DRAW_SOURCE
  }
  return saved
 }
 function drawSourceCandidates(){
- return [...new Set([configuredDrawSource(),DEFAULT_DRAW_SOURCE].filter(Boolean))]
+ const configured=configuredDrawSource();
+ const candidates=[
+  configured,
+  new URL('keno-history.json',document.baseURI).href,
+  'https://arsazet17.github.io/pozitron-keno-v72/keno-history.json',
+  'https://raw.githubusercontent.com/arsazet17/pozitron-keno-v72/main/keno-history.json'
+ ];
+ return [...new Set(candidates.filter(Boolean))]
 }
-async function fetchTextWithTimeout(url,cache='no-store',timeoutMs=20000){
- const controller=new AbortController();
- const timerId=setTimeout(()=>controller.abort(),timeoutMs);
+async function removeLegacyCacheOnce(){
+ if(localStorage.getItem(CACHE_FIX_KEY)==='1')return false;
+ let changed=false;
  try{
-  const response=await fetch(url,{cache,signal:controller.signal});
-  if(!response.ok)throw new Error('HTTP '+response.status);
-  return await response.text()
- }finally{clearTimeout(timerId)}
+  if('serviceWorker' in navigator){
+   const regs=await navigator.serviceWorker.getRegistrations();
+   for(const reg of regs){changed=(await reg.unregister())||changed}
+  }
+ }catch(_){}
+ try{
+  if('caches' in window){
+   const keys=await caches.keys();
+   for(const key of keys){if(/pozitron|keno|v7/i.test(key)){changed=(await caches.delete(key))||changed}}
+  }
+ }catch(_){}
+ localStorage.setItem(CACHE_FIX_KEY,'1');
+ if(changed){location.reload();return true}
+ return false
 }
 async function fetchDrawHistory(){
  let lastError=new Error('источник недоступен');
  for(const url of drawSourceCandidates()){
   try{
-   const items=parse(await fetchTextWithTimeout(url,'no-store'));
+   const response=await fetch(url,{cache:'no-store',mode:'cors',credentials:'same-origin'});
+   if(!response.ok)throw new Error('HTTP '+response.status);
+   const text=await response.text();
+   const items=parse(text);
    if(!items.length)throw new Error('нет распознанных тиражей');
    return {items,url}
   }catch(error){lastError=error}
  }
  throw lastError
 }
-async function ensureAppBase(){
- if(draws.length)return draws.length;
- $('status').textContent='Загружаю встроенную базу v7.1…';
- try{
-  const items=parse(await fetchTextWithTimeout(DEFAULT_DRAW_SOURCE,'force-cache',30000));
-  if(!items.length)throw new Error('база не распознана');
-  draws=dedupe(items);
-  render();
-  $('status').textContent=`v7.1.3 · база: ${draws.length.toLocaleString('ru-RU')} · последний №${draws.at(-1).draw}`;
- }catch(error){
-  $('status').textContent='База не загрузилась: '+error.message;
- }
- return draws.length
-}
-window.ensureAppBase=ensureAppBase;
 
 function normDate(v){
  v=String(v||'').trim();
  let m=v.match(/^(\d{2})[.\-/](\d{2})[.\-/](\d{4})$/);
  if(m)return `${m[3]}-${m[2]}-${m[1]}`;
- m=v.match(/^(\d{2})[.\-/](\d{2})[.\-/](\d{2})$/);
- if(m)return `20${m[3]}-${m[2]}-${m[1]}`;
  m=v.match(/^(\d{4})[.\-/](\d{2})[.\-/](\d{2})$/);
  if(m)return `${m[1]}-${m[2]}-${m[3]}`;
  return v.slice(0,10);
 }
 function showDate(v){const p=normDate(v).split('-');return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:v}
+function dateKey(v){
+ v=String(v||'').trim();
+ const short=v.match(/^(\d{2})[.\-/](\d{2})[.\-/](\d{2})$/);
+ if(short)return `20${short[3]}-${short[2]}-${short[1]}`;
+ return normDate(v);
+}
 function normTime(v){return String(v||'').match(/\d{1,2}:\d{2}(?::\d{2})?/)?.[0]||String(v||'')}
 function valid(o){
  const draw=Number(o.draw??o.number??o.drawNumber??o.id);
@@ -346,9 +362,9 @@ function analysis(d){
  analysisCache.set(d,result);
  return result
 }
-function save(){try{localStorage.setItem('pozitron_v5_draws',JSON.stringify(draws))}catch(error){console.warn('База не помещается в localStorage:',error.message)}}
+function save(){localStorage.setItem('pozitron_v5_draws',JSON.stringify(draws))}
 function load(){try{draws=dedupe(JSON.parse(localStorage.getItem('pozitron_v5_draws')||'[]'))}catch{draws=[]}}
-function merge(a,persist=true){const before=draws.length;draws=dedupe([...draws,...a]);archiveSignature='';if(persist)save();return draws.length-before}
+function merge(a){const before=draws.length;draws=dedupe([...draws,...a]);save();return draws.length-before}
 function transitions(i){if(i<=0)return new Set();return new Set(draws[i-1].balls.filter(n=>draws[i].balls.includes(n)))}
 function ball(d,i,p){
  const asc=[...d.balls].sort((a,b)=>a-b);
@@ -400,7 +416,7 @@ function renderCards(){
 }
 function minutes(t){const m=normTime(t).match(/(\d+):(\d+)/);return m?+m[1]*60 + +m[2]:0}
 function renderChains(){
- const date=$('chainDate').value||draws.at(-1)?.date||'',day=draws.filter(d=>normDate(d.date)===normDate(date));
+ const date=$('chainDate').value||draws.at(-1)?.date||'',day=draws.filter(d=>dateKey(d.date)===dateKey(date));
  if(!day.length){$('chains').innerHTML='<div class="card small">За выбранную дату данных нет.</div>';return}
  const blocks=[];let cur=[];
  day.forEach(d=>{if(cur.length&&minutes(d.time)-minutes(cur.at(-1).time)>30){blocks.push(cur);cur=[]}cur.push(d);if(cur.length===5){blocks.push(cur);cur=[]}});
@@ -417,20 +433,15 @@ function archiveDateTimeValue(d){
  if(parts[0]>1900){[y,m,day]=parts}else{[day,m,y]=parts;if(y<100)y+=2000}
  return new Date(y||2000,(m||1)-1,day||1,0,0,0).getTime()+minutes(d.time)
 }
-function renderArchive(force=false){
- const signature=draws.length?`${draws.length}:${draws[0].draw}:${draws.at(-1).draw}`:'0';
- if(!force&&archiveSignature===signature&&$('archive').innerHTML.trim())return;
- archiveSignature=signature;
- const days=new Map();
- draws.forEach(d=>{
-  const k=archiveDateKey(d);
-  const row=days.get(k);
-  if(row)row.count+=1;
-  else days.set(k,{count:1,stamp:archiveDateTimeValue(d)});
+function renderArchive(){
+ const m=new Map();
+ draws.forEach(d=>{const k=archiveDateKey(d);m.set(k,(m.get(k)||0)+1)});
+ const rows=[...m.entries()].sort((a,b)=>{
+  const da=draws.find(d=>archiveDateKey(d)===a[0]),db=draws.find(d=>archiveDateKey(d)===b[0]);
+  return archiveDateTimeValue(db)-archiveDateTimeValue(da)
  });
- const rows=[...days.entries()].sort((a,b)=>b[1].stamp-a[1].stamp);
  $('archive').innerHTML=`<div class="section" style="margin-top:0"><span>Архив по датам</span></div>`+
-  (rows.map(([date,x])=>`<button type="button" class="row archive-date" data-archive-date="${date}" style="width:100%;color:inherit;text-align:left"><b>${showDate(date)}</b><span style="float:right">${x.count} тиражей ›</span></button>`).join('')||'<p class="small">Архив пуст.</p>');
+  (rows.map(([date,n])=>`<button type="button" class="row archive-date" data-archive-date="${date}" style="width:100%;color:inherit;text-align:left"><b>${showDate(date)}</b><span style="float:right">${n} тиражей ›</span></button>`).join('')||'<p class="small">Архив пуст.</p>');
  document.querySelectorAll('[data-archive-date]').forEach(b=>b.onclick=()=>renderArchiveDay(b.dataset.archiveDate))
 }
 function renderArchiveDay(date){
@@ -720,22 +731,22 @@ async function runQualityAudit(){
 }
 
 function render(){
- $('status').textContent=draws.length?`v7.1 · база: ${draws.length.toLocaleString('ru-RU')} · последний №${draws.at(-1).draw}`:'Версия v7.1 · база: 0';
- if(draws.length&&!$('chainDate').value)$('chainDate').value=draws.at(-1).date;
- renderCards();renderChains();if($('archivePanel').classList.contains('show'))renderArchive();renderLivePredictionCheck();renderPredictionHistory()
+ $('status').textContent=draws.length?`v7.2.1 · база: ${draws.length.toLocaleString('ru-RU')} · последний №${draws.at(-1).draw}`:'Версия v7.2 · база: 0';
+ if(draws.length&&!$('chainDate').value)$('chainDate').value=dateKey(draws.at(-1).date);
+ renderCards();renderChains();renderArchive();renderLivePredictionCheck();renderPredictionHistory()
 }
 async function update(){
  $('status').textContent='Проверяю новые тиражи…';
  try{
   const result=await fetchDrawHistory();
-  const added=merge(result.items,false);
+  const added=merge(result.items);
   render();
-  $('status').textContent=added?`Добавлено ${added} · всего ${draws.length}`:`База актуальна · всего ${draws.length} · v7.1.3`
+  $('status').textContent=added?`Добавлено ${added} · всего ${draws.length}`:`База актуальна · всего ${draws.length}`
  }catch(e){
   render();
   $('status').textContent=draws.length
-   ?`v7.1 · база сохранена: ${draws.length.toLocaleString('ru-RU')} · обновление временно недоступно`
-   :'Нет связи с базой. Откройте «База» и импортируйте JSON.'
+   ?`v7.2.1 · база: ${draws.length.toLocaleString('ru-RU')} · последний №${draws.at(-1).draw}`
+   :'Нет связи с файлом истории. Повторите обновление позже.'
  }
 }
 function auto(){
@@ -744,13 +755,13 @@ function auto(){
  if(ms)timer=setInterval(update,ms)
 }
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-mode]').forEach(x=>x.classList.remove('on'));b.classList.add('on');mode=b.dataset.mode;renderCards()});
-document.querySelectorAll('[data-panel]').forEach(b=>b.onclick=()=>{const p=$(b.dataset.panel);p.classList.toggle('show');if(p.classList.contains('show')&&b.dataset.panel==='archivePanel')renderArchive()});
-document.querySelectorAll('[data-foot]').forEach(b=>b.onclick=()=>{const p=$(b.dataset.foot);p.classList.add('show');if(b.dataset.foot==='archivePanel')renderArchive();p.scrollIntoView({behavior:'smooth'})});
+document.querySelectorAll('[data-panel]').forEach(b=>b.onclick=()=>$(b.dataset.panel).classList.toggle('show'));
+document.querySelectorAll('[data-foot]').forEach(b=>b.onclick=()=>{const p=$(b.dataset.foot);p.classList.add('show');p.scrollIntoView({behavior:'smooth'})});
 $('runPlusBtn').onclick=runAnalogsPlus;
 $('qualityBtn').onclick=runQualityAudit;
 $('findBtn').onclick=()=>{const n=Number($('searchDraw').value),d=draws.find(x=>x.draw===n);$('searchResult').innerHTML=d?`<div class="row"><b>№${d.draw}</b> — ${showDate(d.date)} ${d.time}<br>${d.balls.map(pad).join(' ')}</div>`:'<div class="row small">Тираж не найден.</div>'};
 $('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const added=merge(parse(r.result));render();$('status').textContent=`Импорт: добавлено ${added} · всего ${draws.length}`};r.readAsText(f,'UTF-8')};
-$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({version:'7.1',exportedAt:new Date().toISOString(),draws},null,2)],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='ПОЗИТРОН_КЕНО_v7_1_БАЗА.json';a.click();URL.revokeObjectURL(u)};
+$('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({version:'7.2.1',exportedAt:new Date().toISOString(),draws},null,2)],{type:'application/json'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='ПОЗИТРОН_КЕНО_v7_2_1_БАЗА.json';a.click();URL.revokeObjectURL(u)};
 $('sync').onclick=update;$('sync2').onclick=update;
 $('settingsBtn').onclick=()=>{$('sourceUrl').value=configuredDrawSource();$('interval').value=localStorage.getItem('pozitron_v5_interval')||'300000';$('settings').showModal()};
 $('saveSettings').onclick=()=>{localStorage.setItem('pozitron_v5_url',$('sourceUrl').value.trim()||DEFAULT_DRAW_SOURCE);localStorage.setItem('pozitron_v5_interval',$('interval').value);auto()};
@@ -765,11 +776,1512 @@ if(forecastHistoryToggle&&forecastHistoryContent){
   forecastHistoryToggle.textContent=isOpen?'📋 Прогнозы 5 тир ▶':'📋 Прогнозы 5 тир ▼';
  };
 }
-configuredDrawSource();load();render();auto();if(!draws.length)setTimeout(ensureAppBase,60);setTimeout(update,1200);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')update()});
-window.addEventListener('online',update);
+async function startApp(){
+ load();render();auto();
+ const reloading=await removeLegacyCacheOnce();
+ if(!reloading)setTimeout(update,800)
+}
+startApp();
 </script>
-<script src="max-retro.js?v=712"></script>
-<script src="even-wave.js?v=712"></script>
+<script>
+'use strict';
+(() => {
+  const $ = id => document.getElementById(id);
+  const pad = n => String(n).padStart(2, '0');
+  const colOf = n => n % 10 || 10;
+  const pct = v => `${Math.round((Number(v) || 0) * 100)}%`;
+  let selectedDate = '';
+  let autoForecastData = null;
+  let winnerCache = [];
+  let stateCache = [];
+  const ALGORITHM_VERSION = '2.1.0';
+  const FORECAST_ARCHIVE_KEY = 'pozitron_sm_number_archive_v2';
+  const FORECAST_ARCHIVE_LIMIT = 2000;
+
+  function rebuildStateCache() {
+    const list = Array.isArray(draws) ? draws : [];
+    winnerCache = new Array(list.length);
+    stateCache = new Array(list.length).fill(null);
+    const drawCounts = new Array(list.length);
+    for (let i = 0; i < list.length; i += 1) {
+      drawCounts[i] = counts(list[i]);
+      winnerCache[i] = Number(safeAnalysis(list[i]).winner) || 1;
+    }
+    for (let i = 1; i < list.length; i += 1) {
+      stateCache[i] = Math.min(4, drawCounts[i - 1][winnerCache[i]] || 0);
+    }
+  }
+
+  function safeAnalysis(d) {
+    try { return typeof analysis === 'function' ? analysis(d) : {}; }
+    catch (_) { return {}; }
+  }
+
+  function counts(d) {
+    const out = Array(11).fill(0);
+    (d?.balls || []).forEach(n => { out[colOf(n)] += 1; });
+    return out;
+  }
+
+  function winnerAt(i) {
+    if (winnerCache.length !== (Array.isArray(draws) ? draws.length : 0)) rebuildStateCache();
+    return winnerCache[i] || 1;
+  }
+
+  function stateBeforeWinner(i) {
+    if (i <= 0) return null;
+    if (stateCache.length !== (Array.isArray(draws) ? draws.length : 0)) rebuildStateCache();
+    return stateCache[i] ?? null;
+  }
+
+  function stateLabel(s) {
+    return s === 4 ? '4+' : String(s);
+  }
+
+  function stateShort(s) {
+    return s === 4 ? '4+' : String(s);
+  }
+
+  function sequence(end, len) {
+    const out = [];
+    for (let i = Math.max(1, end - len + 1); i <= end; i += 1) {
+      const state = stateBeforeWinner(i);
+      if (state !== null) out.push(state);
+    }
+    return out;
+  }
+
+
+  function parseStatePattern(value) {
+    return String(value || '')
+      .replace(/4\s*\+/gi, '4')
+      .split(/[^0-4]+/)
+      .filter(Boolean)
+      .map(Number)
+      .filter(n => Number.isInteger(n) && n >= 0 && n <= 4);
+  }
+
+  function statePatternStats(pattern, maxIndex) {
+    const countsNext = Array(5).fill(0);
+    const examples = [];
+    if (!Array.isArray(pattern) || pattern.length < 1) return { total: 0, countsNext, examples };
+
+    for (let end = Math.max(pattern.length, 1); end < maxIndex; end += 1) {
+      const candidate = sequence(end, pattern.length);
+      if (candidate.length !== pattern.length) continue;
+      if (!candidate.every((v, i) => v === pattern[i])) continue;
+      const next = stateBeforeWinner(end + 1);
+      if (next === null) continue;
+      countsNext[next] += 1;
+      if (examples.length < 5) examples.push({
+        fromDraw: draws[end - pattern.length + 1]?.draw,
+        toDraw: draws[end]?.draw,
+        nextDraw: draws[end + 1]?.draw,
+        next
+      });
+    }
+    return { total: countsNext.reduce((a, b) => a + b, 0), countsNext, examples };
+  }
+
+  function patternResultHtml(pattern, maxIndex) {
+    if (!pattern.length) return '<div class="small">Введите цепочку: например 3 2 2 2, 2 2 или 4+ 2 1.</div>';
+    const stats = statePatternStats(pattern, maxIndex);
+    if (!stats.total) return `<div class="small">После цепочки <b>${pattern.map(stateShort).join('→')}</b> точных случаев в архиве не найдено.</div>`;
+    const rows = stats.countsNext
+      .map((count, state) => ({ state, count, percent: Math.round(count * 100 / stats.total) }))
+      .filter(x => x.count)
+      .sort((a, b) => b.count - a.count || a.state - b.state);
+    return `<div class="sm-pattern-summary">После <b>${pattern.map(stateShort).join('→')}</b> · найдено ${stats.total}</div>
+      <div class="sm-pattern-results">${rows.map(x => `<div class="sm-pattern-chip"><b>${stateShort(x.state)}</b><strong>${x.percent}%</strong><small>${x.count} раз</small></div>`).join('')}</div>`;
+  }
+
+  function patternFinderHtml(model) {
+    const initial = model.seq.slice(-4);
+    return `<div class="section"><span>Поиск выхода после цепочки</span></div>
+      <div class="sm-pattern-box">
+        <div class="small">Любая цепочка режимов: 3 2 2 2, 2 2, 4+ 2 1</div>
+        <div class="sm-pattern-row">
+          <input id="smPattern_${model.typeKey}" value="${initial.map(stateShort).join(' ')}" inputmode="text" aria-label="Цепочка режимов">
+          <button id="smPatternBtn_${model.typeKey}" type="button">Найти</button>
+        </div>
+        <div id="smPatternResult_${model.typeKey}"><div class="small">Нажмите «Найти», чтобы проверить эту цепочку по архиву.</div></div>
+      </div>`;
+  }
+
+  function bindPatternFinder(model) {
+    const input = $(`smPattern_${model.typeKey}`);
+    const button = $(`smPatternBtn_${model.typeKey}`);
+    const result = $(`smPatternResult_${model.typeKey}`);
+    if (!input || !button || !result) return;
+    const run = () => { result.innerHTML = patternResultHtml(parseStatePattern(input.value), model.endIndex); };
+    button.onclick = run;
+    input.onkeydown = e => { if (e.key === 'Enter') run(); };
+  }
+
+  function weightedSimilarity(a, b) {
+    const n = Math.min(a.length, b.length);
+    if (!n) return 0;
+    let score = 0;
+    let total = 0;
+    for (let i = 0; i < n; i += 1) {
+      const weight = i + 1;
+      const av = a[a.length - n + i];
+      const bv = b[b.length - n + i];
+      total += weight;
+      score += weight * (1 - Math.min(1, Math.abs(av - bv) / 4));
+    }
+    return total ? score / total : 0;
+  }
+
+  function classify(seq) {
+    if (seq.length < 3) return 'недостаточно данных';
+    let changes = 0;
+    let rises = 0;
+    let falls = 0;
+    const freq = Array(5).fill(0);
+    seq.forEach(x => { freq[x] += 1; });
+    for (let i = 1; i < seq.length; i += 1) {
+      if (seq[i] !== seq[i - 1]) changes += 1;
+      if (seq[i] > seq[i - 1]) rises += 1;
+      if (seq[i] < seq[i - 1]) falls += 1;
+    }
+    const rate = changes / Math.max(1, seq.length - 1);
+    const max = Math.max(...freq);
+    const dominant = freq.indexOf(max);
+    const last = seq.at(-1);
+    const prev = seq.at(-2);
+
+    if (rate >= 0.88) return 'почти непрерывная смена';
+    if (rate >= 0.70) return 'частая переменная смена';
+    if (max >= Math.ceil(seq.length * 0.60)) return `удержание режима ${stateLabel(dominant)}`;
+    if (rises >= seq.length - 2) return 'уплотнение';
+    if (falls >= seq.length - 2) return 'разрежение';
+    if (last === 0 && prev >= 2) return 'резкий сброс в пустоту';
+    if (new Set(seq).size === 2 && rate >= 0.65) return 'качели двух режимов';
+    return 'переменная смена';
+  }
+
+  function addHistoricalBaseline(support, minIndex, maxIndex, weight) {
+    const countsByState = Array(5).fill(0);
+    let total = 0;
+    for (let i = Math.max(1, minIndex); i <= maxIndex; i += 1) {
+      const state = stateBeforeWinner(i);
+      if (state === null) continue;
+      countsByState[state] += 1;
+      total += 1;
+    }
+    if (!total) return;
+    countsByState.forEach((v, s) => { support[s] += weight * (v / total); });
+  }
+
+  function addSuffixEvidence(seq, minIndex, maxIndex, support, stats) {
+    const suffixLengths = [5, 4, 3, 2].filter(n => n <= seq.length);
+    for (const len of suffixLengths) {
+      const target = seq.slice(-len);
+      const lengthWeight = ({ 5: 1.00, 4: 0.78, 3: 0.56, 2: 0.36 })[len] || 0.25;
+      for (let end = minIndex + len - 1; end < maxIndex; end += 1) {
+        const cand = sequence(end, len);
+        if (cand.length !== len) continue;
+        const sim = weightedSimilarity(target, cand);
+        const threshold = len >= 5 ? 0.72 : len === 4 ? 0.76 : len === 3 ? 0.82 : 0.94;
+        if (sim < threshold) continue;
+        const next = stateBeforeWinner(end + 1);
+        if (next === null) continue;
+        const weight = lengthWeight * Math.pow(sim, 5);
+        support[next] += weight;
+        stats.weight += weight;
+        if (len === 5 && sim > 0.999) stats.exact += 1;
+        else stats.near += 1;
+      }
+    }
+  }
+
+  function addSwitchEvidence(seq, minIndex, maxIndex, support, stats) {
+    if (seq.length < 3) return;
+    const last = seq.at(-1);
+    const prev = seq.at(-2);
+    const before = seq.at(-3);
+    const targetChanged = last !== prev;
+    const targetChangedTwice = prev !== before;
+
+    for (let i = Math.max(3, minIndex); i < maxIndex; i += 1) {
+      const a = stateBeforeWinner(i - 2);
+      const b = stateBeforeWinner(i - 1);
+      const c = stateBeforeWinner(i);
+      const next = stateBeforeWinner(i + 1);
+      if ([a, b, c, next].some(v => v === null)) continue;
+
+      let match = 0;
+      if (b === prev && c === last) match += 0.48;
+      if ((c !== b) === targetChanged) match += 0.24;
+      if ((b !== a) === targetChangedTwice) match += 0.14;
+      if (Math.sign(c - b) === Math.sign(last - prev)) match += 0.14;
+      if (match < 0.60) continue;
+
+      const weight = 0.9 * Math.pow(match, 3);
+      support[next] += weight;
+      stats.weight += weight;
+      stats.switchCases += 1;
+    }
+  }
+
+function currentAvailability(endIndex) {
+    const currentCounts = counts(draws[endIndex]);
+    const byState = Array.from({ length: 5 }, () => []);
+    for (let col = 1; col <= 10; col += 1) {
+      byState[Math.min(4, currentCounts[col])].push(col);
+    }
+    return byState;
+  }
+
+  function profileKey(available) {
+    return available.map(cols => cols.length).join('-');
+  }
+
+  function densityProfileForecast(endIndex, maxIndex) {
+    const available = currentAvailability(endIndex);
+    const baseProbs = available.map(cols => cols.length / 10);
+    const targetKey = profileKey(available);
+    const countsNext = Array(5).fill(0);
+    let matches = 0;
+
+    for (let currentIndex = 0; currentIndex <= maxIndex; currentIndex += 1) {
+      const historicalAvailable = currentAvailability(currentIndex);
+      if (profileKey(historicalAvailable) !== targetKey) continue;
+      const nextState = stateBeforeWinner(currentIndex + 1);
+      if (nextState === null) continue;
+      countsNext[nextState] += 1;
+      matches += 1;
+    }
+
+    const alpha = 20;
+    const profileProbs = countsNext.map((count, state) =>
+      (count + alpha * baseProbs[state]) / (matches + alpha)
+    );
+
+    return { available, baseProbs, profileProbs, profileMatches: matches };
+  }
+
+  function analogForecast(seq, minIndex, maxIndex, endIndex) {
+    const support = Array(5).fill(0);
+    const stats = { exact: 0, near: 0, switchCases: 0, weight: 0 };
+
+    addSuffixEvidence(seq, minIndex, maxIndex, support, stats);
+    addSwitchEvidence(seq, minIndex, maxIndex, support, stats);
+    addHistoricalBaseline(support, minIndex, maxIndex, Math.max(0.35, stats.weight * 0.25));
+
+    const density = densityProfileForecast(endIndex, maxIndex);
+    const supportTotal = support.reduce((a, b) => a + b, 0);
+    const chainProbs = supportTotal
+      ? support.map(v => v / supportTotal)
+      : density.baseProbs.slice();
+
+    // Плотность последнего тиража — только небольшая поправка. Основной вес
+    // получают повторяющиеся цепочки и переключения из архива.
+    const mixed = density.profileProbs.map((v, state) =>
+      density.available[state].length ? 0.30 * v + 0.70 * chainProbs[state] : 0
+    );
+    const total = mixed.reduce((a, b) => a + b, 0) || 1;
+    const probs = mixed.map(v => v / total);
+    const order = [0, 1, 2, 3, 4].sort((a, b) => probs[b] - probs[a] || a - b);
+
+    return {
+      support,
+      probs,
+      available: density.available,
+      baseProbs: density.baseProbs,
+      profileProbs: density.profileProbs,
+      profileMatches: density.profileMatches,
+      order,
+      exact: stats.exact,
+      near: stats.near,
+      switchCases: stats.switchCases
+    };
+  }
+
+  function winnerStreak(col, endIndex) {
+    let streak = 0;
+    for (let i = endIndex; i >= 0; i -= 1) {
+      if (winnerAt(i) === col) streak += 1;
+      else break;
+    }
+    return streak;
+  }
+
+  function preservedWinnerFrame(col, endIndex) {
+    if (endIndex < 1) return 0;
+    const last = new Set(draws[endIndex].balls || []);
+    const prev = (draws[endIndex - 1].balls || []).filter(n => colOf(n) === col);
+    return prev.filter(n => last.has(n)).length;
+  }
+
+  function recentGap(n, endIndex, maxWindow = 40) {
+    const start = Math.max(0, endIndex - maxWindow + 1);
+    for (let i = endIndex; i >= start; i -= 1) {
+      if ((draws[i]?.balls || []).includes(n)) return endIndex - i;
+    }
+    return maxWindow;
+  }
+
+  function sprintNumberScore(n, col, endIndex) {
+    const lastSet = new Set(draws[endIndex]?.balls || []);
+    const prevSet = new Set(draws[endIndex - 1]?.balls || []);
+    const recent = draws.slice(Math.max(0, endIndex - 7), endIndex + 1);
+    const hits = recent.filter(d => (d?.balls || []).includes(n)).length;
+    const has = x => x >= 1 && x <= 80 && lastSet.has(x);
+    let score = 0;
+
+    // Спринт ищет короткое движение. Повтор больше не получает огромного преимущества.
+    score += lastSet.has(n) ? 0.30 : 0.62;
+    score += (hits / Math.max(1, recent.length)) * 0.95;
+    if (!lastSet.has(n) && prevSet.has(n)) score += 0.45;
+    if (has(n - 1) || has(n + 1)) score += 0.40;
+    if (has(n - 10) || has(n + 10)) score += 0.48;
+    if (has(n - 2) || has(n + 2)) score += 0.20;
+    if (recentGap(n, endIndex, 12) >= 3) score += 0.28;
+
+    return { score, reasons: [] };
+  }
+
+  function marathonNumberScore(n, col, endIndex) {
+    const lastSet = new Set(draws[endIndex]?.balls || []);
+    const recent80 = draws.slice(Math.max(0, endIndex - 79), endIndex + 1);
+    const long240 = draws.slice(Math.max(0, endIndex - 239), endIndex + 1);
+    const rate80 = recent80.filter(d => (d?.balls || []).includes(n)).length / Math.max(1, recent80.length);
+    const rate240 = long240.filter(d => (d?.balls || []).includes(n)).length / Math.max(1, long240.length);
+    const gap = recentGap(n, endIndex, 60);
+    const half = Math.max(1, Math.floor(recent80.length / 2));
+    const earlyRate = recent80.slice(0, half).filter(d => (d?.balls || []).includes(n)).length / half;
+    const latePart = recent80.slice(half);
+    const lateRate = latePart.filter(d => (d?.balls || []).includes(n)).length / Math.max(1, latePart.length);
+    let freshReturns = 0;
+
+    for (let i = Math.max(1, endIndex - 79); i <= endIndex; i += 1) {
+      const before = new Set(draws[i - 1]?.balls || []);
+      const current = new Set(draws[i]?.balls || []);
+      if (!before.has(n) && current.has(n)) freshReturns += 1;
+    }
+
+    // Марафон оценивает устойчивость на длинных окнах. Пропуск остаётся
+    // небольшой поправкой и не может вытеснить частоту и стабильность.
+    const stability = 1 - Math.min(1, Math.abs(rate80 - rate240) * 5);
+    const trend = Math.max(-0.20, Math.min(0.20, lateRate - earlyRate));
+    let score = rate80 * 1.45 + rate240 * 1.25 + stability * 0.28;
+    score += Math.min(0.32, gap * 0.035);
+    score += Math.min(0.24, freshReturns * 0.025);
+    score += trend * 0.70;
+    if (lastSet.has(n)) score -= 0.12;
+
+    return { score, reasons: [] };
+  }
+
+function recentWinnerRate(col, endIndex, window) {
+    const start = Math.max(0, endIndex - window + 1);
+    let hits = 0;
+    for (let i = start; i <= endIndex; i += 1) if (winnerAt(i) === col) hits += 1;
+    return hits / Math.max(1, endIndex - start + 1);
+  }
+
+  function densityMomentum(col, endIndex) {
+    if (endIndex < 2) return 0;
+    const recentStart = Math.max(0, endIndex - 3);
+    const previousEnd = recentStart - 1;
+    const previousStart = Math.max(0, previousEnd - 3);
+    let recentSum = 0, recentN = 0, previousSum = 0, previousN = 0;
+
+    for (let i = recentStart; i <= endIndex; i += 1) {
+      recentSum += counts(draws[i])[col];
+      recentN += 1;
+    }
+    for (let i = previousStart; i <= previousEnd; i += 1) {
+      previousSum += counts(draws[i])[col];
+      previousN += 1;
+    }
+    return recentSum / Math.max(1, recentN) - previousSum / Math.max(1, previousN);
+  }
+
+  function transitionWinnerRate(col, endIndex, window) {
+    if (endIndex < 2) return 0.10;
+    const previousWinner = winnerAt(endIndex);
+    const start = Math.max(1, endIndex - window + 1);
+    let cases = 0;
+    let hits = 0;
+    for (let i = start; i <= endIndex; i += 1) {
+      if (winnerAt(i - 1) !== previousWinner) continue;
+      cases += 1;
+      if (winnerAt(i) === col) hits += 1;
+    }
+    return (hits + 2) / (cases + 20);
+  }
+
+  function stableTie(col, endIndex, salt) {
+    let x = (Number(draws[endIndex]?.draw) || endIndex + 1) ^ Math.imul(col + salt, 0x9e3779b1);
+    x ^= x >>> 16;
+    x = Math.imul(x, 0x85ebca6b);
+    x ^= x >>> 13;
+    return (x >>> 0) / 4294967296;
+  }
+
+  function signalFromRows(rows) {
+    const fourth = rows[3]?.score ?? 0;
+    const fifth = rows[4]?.score ?? fourth;
+    const first = rows[0]?.score ?? fourth;
+    const margin = Math.max(0, fourth - fifth);
+    const spread = Math.max(0, first - fifth);
+    const score = Math.max(0, Math.min(1, margin / 1.5 * 0.65 + spread / 5 * 0.35));
+    return {
+      signal: score >= 0.62 ? 'сильный' : score >= 0.34 ? 'средний' : 'слабый',
+      signalScore: Number(score.toFixed(3)),
+      margin: Number(margin.toFixed(4))
+    };
+  }
+
+  function allocateStateSlots(pred, slots = 4) {
+    const availableCounts = pred.available.map(cols => cols.length);
+    const raw = pred.probs.map(p => p * slots);
+    const quota = raw.map((v, state) => Math.min(availableCounts[state], Math.floor(v)));
+    let left = slots - quota.reduce((a, b) => a + b, 0);
+
+    const order = [0, 1, 2, 3, 4].sort((a, b) =>
+      (raw[b] - Math.floor(raw[b])) - (raw[a] - Math.floor(raw[a]))
+      || pred.probs[b] - pred.probs[a]
+      || availableCounts[b] - availableCounts[a]
+      || a - b
+    );
+
+    while (left > 0) {
+      let added = false;
+      for (const state of order) {
+        if (quota[state] >= availableCounts[state]) continue;
+        quota[state] += 1;
+        left -= 1;
+        added = true;
+        if (!left) break;
+      }
+      if (!added) break;
+    }
+    return quota;
+  }
+
+  function rankColumns(pred, endIndex, typeKey) {
+    const current = counts(draws[endIndex]);
+    const rows = [];
+    const sprint = typeKey === 'sprint';
+
+    for (let col = 1; col <= 10; col += 1) {
+      const state = Math.min(4, current[col]);
+      const groupSize = Math.max(1, pred.available[state]?.length || 0);
+      const perColumnRegime = (pred.probs[state] || 0) / groupSize;
+      const rate12 = recentWinnerRate(col, endIndex, 12);
+      const rate30 = recentWinnerRate(col, endIndex, 30);
+      const rate80 = recentWinnerRate(col, endIndex, 80);
+      const rate240 = recentWinnerRate(col, endIndex, 240);
+      const transition = transitionWinnerRate(col, endIndex, sprint ? 160 : 600);
+      const momentum = Math.max(-2, Math.min(2, densityMomentum(col, endIndex)));
+      const stability = 1 - Math.min(1, Math.abs(rate80 - rate240) * 8);
+      const activity = sprint ? 0.65 * rate12 + 0.35 * rate30 : 0.55 * rate80 + 0.45 * rate240;
+      const score = sprint
+        ? activity * 55 + transition * 25 + perColumnRegime * 12 + momentum * 1.5
+        : activity * 60 + transition * 20 + stability * 3 + perColumnRegime * 5;
+
+      const reasons = [];
+      reasons.push(sprint ? 'короткий горизонт 12–30 тир.' : 'длинный горизонт 80–240 тир.');
+      reasons.push(`переход ${Math.round(transition * 100)}%`);
+      reasons.push(`режим ${stateLabel(state)} — малый вес`);
+      rows.push({
+        col, state, score: score + stableTie(col, endIndex, sprint ? 17 : 53) * 0.0001,
+        reasons, regime: pred.probs[state] || 0, perColumnRegime, activity, transition, momentum, stability
+      });
+    }
+    rows.sort((a, b) => b.score - a.score || stableTie(b.col, endIndex, 91) - stableTie(a.col, endIndex, 91));
+    return rows;
+  }
+
+  function pickNumbers(rows, limit, options = {}) {
+    const lastSet = new Set(draws[options.endIndex]?.balls || []);
+    const maxRepeats = Number.isFinite(options.maxRepeats) ? options.maxRepeats : limit;
+    const selected = [];
+    let repeats = 0;
+
+    for (const row of rows) {
+      if (selected.length >= limit) break;
+      const isRepeat = lastSet.has(row.n);
+      if (isRepeat && repeats >= maxRepeats) continue;
+      selected.push(row);
+      if (isRepeat) repeats += 1;
+    }
+
+    // Защитное заполнение: комбинация всегда должна иметь нужную длину.
+    if (selected.length < limit) {
+      const used = new Set(selected.map(x => x.n));
+      for (const row of rows) {
+        if (selected.length >= limit) break;
+        if (used.has(row.n)) continue;
+        selected.push(row);
+        used.add(row.n);
+      }
+    }
+    return selected;
+  }
+
+  function rankSprintNumbers(cols, endIndex) {
+    const rows = [];
+    for (const col of cols) {
+      for (let n = col; n <= 80; n += 10) rows.push({ n, col, ...sprintNumberScore(n, col, endIndex) });
+    }
+    rows.sort((a, b) => b.score - a.score || a.n - b.n);
+    return pickNumbers(rows, 6, { endIndex, maxRepeats: 2 });
+  }
+
+  function rankMarathonNumbers(cols, endIndex) {
+    const rows = [];
+    for (const col of cols) {
+      for (let n = col; n <= 80; n += 10) rows.push({ n, col, ...marathonNumberScore(n, col, endIndex) });
+    }
+    rows.sort((a, b) => b.score - a.score || a.n - b.n);
+    return pickNumbers(rows, 8, { endIndex, maxRepeats: 2 });
+  }
+
+  async function loadAutoForecastData() {
+    try {
+      const response = await fetch(`keno-auto.json?ts=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      autoForecastData = await response.json();
+    } catch (_) {
+      autoForecastData = null;
+    }
+  }
+
+  function forecastMark(type, drawNumber, winnerColumn) {
+    const forecasts = Array.isArray(autoForecastData?.forecasts) ? autoForecastData.forecasts : [];
+    const forecast = forecasts.find(item =>
+      item?.type === type && Number(item?.targetDraw) === Number(drawNumber)
+    );
+    if (!forecast || !Array.isArray(forecast.columns)) return '';
+
+    const place = forecast.columns.map(Number).indexOf(Number(winnerColumn));
+    if (place === 0) return '<span class="sm-hit sm-hit-first" title="Первый прогноз">✓</span>';
+    if (place > 0 && place < 4) return '<span class="sm-hit sm-hit-other" title="Прогноз 2–4">✓</span>';
+    return '<span class="sm-hit sm-hit-miss" title="Не угадали ни один из 4 столбцов">✕</span>';
+  }
+
+  function dateIndices(date) {
+    const out = [];
+    for (let i = 0; i < draws.length; i += 1) if (draws[i]?.date === date) out.push(i);
+    return out;
+  }
+
+  function availableDates() {
+    return [...new Set(draws.map(d => d?.date).filter(Boolean))].reverse();
+  }
+
+  function splitIntoCycles(indices) {
+    const cycles = [];
+    let current = [];
+
+    for (const index of indices) {
+      if (!current.length) {
+        current.push(index);
+        continue;
+      }
+
+      const prevIndex = current.at(-1);
+      const prevStamp = drawStamp(draws[prevIndex]);
+      const curStamp = drawStamp(draws[index]);
+      const gapMinutes = prevStamp !== null && curStamp !== null
+        ? Math.round((curStamp - prevStamp) / 60000)
+        : 30;
+      const newCycle = gapMinutes > 35
+        || draws[index]?.date !== draws[prevIndex]?.date
+        || current.length >= 5;
+
+      if (newCycle) {
+        cycles.push(current);
+        current = [index];
+      } else {
+        current.push(index);
+      }
+    }
+
+    if (current.length) cycles.push(current);
+    return cycles;
+  }
+
+  function sprintModel(dayIndices) {
+    const cycles = splitIntoCycles(dayIndices);
+    const chosenCycles = cycles.slice(-2);
+    const chosen = chosenCycles.flat();
+    const end = chosen.at(-1);
+    const start = chosen[0];
+    const seq = chosen.map(i => stateBeforeWinner(i)).filter(v => v !== null);
+    const pred = analogForecast(seq, 1, end - 1, end);
+    const ranked = rankColumns(pred, end, 'sprint');
+    const cols = ranked.slice(0, 4);
+    const nums = rankSprintNumbers(cols.map(x => x.col), end);
+    const signal = signalFromRows(ranked);
+    return {
+      algorithmVersion: ALGORITHM_VERSION,
+      ...signal,
+      name: 'СПРИНТ',
+      seq,
+      pred,
+      cols,
+      nums,
+      type: classify(seq),
+      window: chosen.length,
+      startIndex: start,
+      endIndex: end,
+      cycles: chosenCycles,
+      typeKey: 'sprint'
+    };
+  }
+
+  function marathonModel(dayIndices) {
+    const chosen = dayIndices.slice(-40);
+    const end = chosen.at(-1);
+    const start = chosen[0];
+    const seq = chosen.map(i => stateBeforeWinner(i)).filter(v => v !== null);
+    const tail = seq.slice(-10);
+    const pred = analogForecast(tail, 1, end - 1, end);
+    const ranked = rankColumns(pred, end, 'marathon');
+    const cols = ranked.slice(0, 4);
+    const nums = rankMarathonNumbers(cols.map(x => x.col), end);
+    return {
+      name: 'МАРАФОН', algorithmVersion: ALGORITHM_VERSION, ...signalFromRows(ranked),
+      seq, pred, cols, nums, type: classify(seq), window: chosen.length,
+      startIndex: start, endIndex: end, typeKey: 'marathon'
+    };
+  }
+
+  function regimeBars(pred) {
+    return pred.order.map(state => {
+      const available = pred.available[state] || [];
+      const impossible = !available.length;
+      return `<div class="sm-reg${impossible ? ' sm-off' : ''}">
+        <b>${stateShort(state)}</b>
+        <span>${impossible ? '0%' : pct(pred.probs[state] || 0)}</span>
+        <small>${available.length ? `${available.length} ст. (${available.map(c => `ст${c}`).join(', ')})` : 'нет'}</small>
+      </div>`;
+    }).join('');
+  }
+
+  function predictedState(pred) {
+    return (pred?.order || []).find(state => (pred.available?.[state] || []).length) ?? null;
+  }
+
+  function drawBlockHtml(startIndex, endIndex, typeKey, nextState = null) {
+    const start = draws[startIndex];
+    const end = draws[endIndex];
+    const cols = [];
+    const states = [];
+    for (let i = startIndex; i <= endIndex; i += 1) {
+      const winner = winnerAt(i);
+      const mark = forecastMark(typeKey, draws[i]?.draw, winner);
+      cols.push(`ст${winner}${mark}`);
+      states.push(stateBeforeWinner(i));
+    }
+    return `<div class="sm-chain-block">
+      <b>№${start.draw}–№${end.draw} · ${start.date} · ${start.time}–${end.time}</b>
+      <div><span>Столбцы:</span> ${cols.join(' → ')}</div>
+      <div><span>Выход:</span> ${states.map(stateLabel).join(' → ')}</div>
+    </div>`;
+  }
+
+  function drawStamp(d) {
+    const dm = String(d?.date || '').match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/);
+    const tm = String(d?.time || '').match(/(\d{1,2}):(\d{2})/);
+    if (!dm || !tm) return null;
+    return new Date(Number(dm[3]), Number(dm[2]) - 1, Number(dm[1]), Number(tm[1]), Number(tm[2])).getTime();
+  }
+
+  function chainBlocksHtml(model) {
+    if (Array.isArray(model.cycles) && model.cycles.length) {
+      const cycles = model.cycles.filter(cycle => cycle.length);
+      return cycles
+        .map((cycle, index) => drawBlockHtml(
+          cycle[0],
+          cycle.at(-1),
+          model.typeKey
+        ))
+        .join('');
+    }
+
+    const blocks = [];
+    let start = model.startIndex;
+
+    for (let i = model.startIndex + 1; i <= model.endIndex; i += 1) {
+      const prevStamp = drawStamp(draws[i - 1]);
+      const curStamp = drawStamp(draws[i]);
+      const gapMinutes = prevStamp !== null && curStamp !== null
+        ? Math.round((curStamp - prevStamp) / 60000)
+        : 30;
+
+      const reachedFive = i - start >= 5;
+      const newCycle = gapMinutes > 35 || draws[i]?.date !== draws[i - 1]?.date;
+
+      if (reachedFive || newCycle) {
+        blocks.push(drawBlockHtml(start, i - 1, model.typeKey));
+        start = i;
+      }
+    }
+
+    if (start <= model.endIndex) blocks.push(drawBlockHtml(start, model.endIndex, model.typeKey));
+    return blocks.join('');
+  }
+
+  function readNumberArchive() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(FORECAST_ARCHIVE_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function writeNumberArchive(records) {
+    try {
+      localStorage.setItem(FORECAST_ARCHIVE_KEY, JSON.stringify(records.slice(-FORECAST_ARCHIVE_LIMIT)));
+    } catch (_) {
+      // Архив не должен ломать основной анализ при запрете локального хранилища.
+    }
+  }
+
+  function saveForecastPair(sprint, marathon) {
+    if (!sprint || !marathon || sprint.endIndex !== draws.length - 1 || marathon.endIndex !== draws.length - 1) return;
+    const source = draws[sprint.endIndex];
+    const targetDraw = Number(source?.draw || 0) + 1;
+    if (!targetDraw) return;
+
+    const records = readNumberArchive();
+    if (records.some(r => Number(r?.targetDraw) === targetDraw)) return;
+    records.push({
+      targetDraw,
+      sourceDraw: Number(source.draw),
+      sourceDate: source.date || '',
+      createdAt: new Date().toISOString(),
+      algorithmVersion: ALGORITHM_VERSION,
+      sprintColumns: sprint.cols.map(x => Number(x.col)),
+      marathonColumns: marathon.cols.map(x => Number(x.col)),
+      sprintSignal: sprint.signal,
+      marathonSignal: marathon.signal,
+      sprint: sprint.nums.map(x => Number(x.n)),
+      marathon: marathon.nums.map(x => Number(x.n))
+    });
+    writeNumberArchive(records);
+  }
+
+  function actualDrawByNumber(drawNumber) {
+    const index = draws.findIndex(d => Number(d?.draw) === Number(drawNumber));
+    return index >= 0 ? { index, draw: draws[index] } : null;
+  }
+
+  function archiveNumbersHtml(nums, actualSet) {
+    return nums.map(n => {
+      const hit = actualSet?.has(Number(n));
+      return `<span class="sm-archive-num${hit ? ' sm-archive-hit' : ''}">${pad(n)}${hit ? '<b>✓</b>' : ''}</span>`;
+    }).join('');
+  }
+
+  function archiveRowHtml(record) {
+    const actual = actualDrawByNumber(record.targetDraw);
+    const actualSet = actual ? new Set(actual.draw?.balls || []) : null;
+    const winner = actual ? winnerAt(actual.index) : null;
+    const time = actual?.draw?.time ? String(actual.draw.time).slice(0, 5) : '';
+    const head = actual
+      ? `№${record.targetDraw} · ст${winner} · ${time}`
+      : `№${record.targetDraw} · ожидается`;
+    return `<div class="sm-archive-row">
+      <b>${head}</b>
+      <div><span>🏃</span>${archiveNumbersHtml(record.sprint || [], actualSet)}</div>
+      <div><span>🐢</span>${archiveNumbersHtml(record.marathon || [], actualSet)}</div>
+    </div>`;
+  }
+
+  function forecastArchiveHtml() {
+    const records = readNumberArchive();
+    if (!records.length) {
+      return `<details class="sm-archive"><summary>Архив комбинаций</summary><div class="small">Первая запись появится после фиксации прогноза на следующий тираж.</div></details>`;
+    }
+
+    const groups = new Map();
+    for (const record of records) {
+      const actual = actualDrawByNumber(record.targetDraw);
+      const date = actual?.draw?.date || record.sourceDate || 'Без даты';
+      if (!groups.has(date)) groups.set(date, []);
+      groups.get(date).push(record);
+    }
+
+    const dates = [...groups.keys()].sort((a, b) => {
+      const ai = groups.get(a).at(-1)?.targetDraw || 0;
+      const bi = groups.get(b).at(-1)?.targetDraw || 0;
+      return bi - ai;
+    });
+
+    return `<details class="sm-archive"><summary>Архив комбинаций</summary>
+      <div class="sm-archive-days">${dates.map((date, index) => {
+        const rows = groups.get(date).slice().sort((a, b) => Number(a.targetDraw) - Number(b.targetDraw));
+        return `<details class="sm-archive-day"${index === 0 ? ' open' : ''}><summary>${date}</summary>${rows.map(archiveRowHtml).join('')}</details>`;
+      }).join('')}</div>
+    </details>`;
+  }
+
+  function captureLatestForecast() {
+    try {
+      if (!Array.isArray(draws) || draws.length < 2) return;
+      const latestDate = draws.at(-1)?.date;
+      const day = dateIndices(latestDate);
+      if (!day.length) return;
+      const sprint = sprintModel(day);
+      const marathon = marathonModel(day);
+      saveForecastPair(sprint, marathon);
+    } catch (_) {
+      // Не мешаем основному приложению, если архив временно не смог обновиться.
+    }
+  }
+
+  function modelHtml(model, icon) {
+    const changes = model.seq.slice(1).filter((x, i) => x !== model.seq[i]).length;
+    const weakSignal = model.signal === 'слабый'
+      ? '<div class="row sm-weak"><b>Слабый сигнал.</b> Четвёрка сохранена, но преимущество над следующими столбами небольшое.</div>'
+      : '';
+    return `<div class="sm-card">
+      <div class="sm-head">${icon} ${model.name}</div>
+      <div class="small">Алгоритм ${model.algorithmVersion} · сигнал: <b>${model.signal}</b> (${Math.round(model.signalScore * 100)}%)</div>
+      ${weakSignal}
+      <div class="sm-seq">${model.seq.map(stateShort).join('→')}</div>
+      <div class="small"><b>Цикл:</b> ${model.type} · смен ${changes}/${Math.max(1, model.seq.length - 1)}</div>
+      ${patternFinderHtml(model)}
+      <div class="section"><span>Цепочки тиражей</span></div>
+      <div class="sm-chain-list">${chainBlocksHtml(model)}</div>
+      <div class="section"><span>Вероятное продолжение режима</span></div>
+      <div class="sm-regs">${regimeBars(model.pred)}</div>
+      <div class="row small">Точных пятёрок: ${model.pred.exact} · близких фрагментов: ${model.pred.near} · переключений учтено: ${model.pred.switchCases}</div>
+      <div class="section"><span>Выход №${Number(draws[model.endIndex]?.draw || 0) + 1}</span></div>
+      ${model.cols.map((x, i) => `<div class="sm-line"><b>${i + 1}. ст${x.col}</b> · сейчас ${stateLabel(x.state)} · ${Math.round(x.score * 100)} баллов<br><span class="small">${x.reasons.join(' · ') || 'по режиму цепочки'}</span></div>`).join('')}
+      <div class="section"><span>Комбинация чисел</span></div>
+      <div class="sm-balls">${model.nums.map(x => `<div class="sm-ball"><b>${pad(x.n)}</b><small>ст${x.col}</small></div>`).join('')}</div>
+    </div>`;
+  }
+
+  function agreementHtml(sprint, marathon) {
+    const sprintNums = new Set(sprint.nums.map(x => x.n));
+    const marathonNums = new Set(marathon.nums.map(x => x.n));
+    const nums = [...sprintNums].filter(n => marathonNums.has(n));
+    const sprintCols = new Set(sprint.cols.map(x => x.col));
+    const marathonCols = new Set(marathon.cols.map(x => x.col));
+    const cols = [...sprintCols].filter(c => marathonCols.has(c));
+    return `<div class="sm-agree"><b>Совпадение Спринта и Марафона</b><br>
+      Столбцы: ${cols.length ? cols.map(c => `ст${c}`).join(' · ') : 'нет общего сигнала'}<br>
+      Числа: ${nums.length ? nums.map(pad).join(' · ') : 'нет общего сигнала'}<br>
+      <span class="small">При расхождении вывод считается экспериментальным.</span></div>`;
+  }
+
+  function render(which) {
+    const box = $('sprintMarathonResult');
+    if (!box) return;
+    if (!Array.isArray(draws) || draws.length < 60) {
+      box.innerHTML = '<div class="row">Нужно не меньше 60 тиражей.</div>';
+      return;
+    }
+    const dates = availableDates();
+    if (!selectedDate || !dates.includes(selectedDate)) selectedDate = dates[0] || '';
+    const day = dateIndices(selectedDate);
+    const selector = `<div class="sm-date-row"><b>День анализа</b><select id="smDateSelect">${dates.map(d => `<option value="${d}"${d === selectedDate ? ' selected' : ''}>${d}</option>`).join('')}</select></div>`;
+    if (!day.length) { box.innerHTML = selector + '<div class="row">За выбранный день тиражей нет.</div>'; return; }
+    box.innerHTML = selector + '<div class="row">⏳ Анализирую выбранный день…</div>';
+    const select = $('smDateSelect');
+    if (select) select.onchange = e => { selectedDate = e.target.value; render(which); };
+    setTimeout(async () => {
+      await loadAutoForecastData();
+      // LIVE FIX: после обновления базы заново берём индексы выбранного дня,
+      // чтобы нижний анализ никогда не оставался на предыдущем тираже.
+      const freshDay = dateIndices(selectedDate);
+      const activeDay = freshDay.length ? freshDay : day;
+      const sprint = sprintModel(activeDay);
+      const marathon = marathonModel(activeDay);
+      saveForecastPair(sprint, marathon);
+      const content = which === 'sprint'
+        ? modelHtml(sprint, '🏃')
+        : which === 'marathon'
+          ? modelHtml(marathon, '🐢')
+          : modelHtml(sprint, '🏃') + modelHtml(marathon, '🐢') + agreementHtml(sprint, marathon);
+      box.innerHTML = selector + `<div class="small sm-day-count">За ${selectedDate}: ${activeDay.length} тиражей. Спринт — 2 последних цикла (${sprint.window} тиражей), Марафон — ${Math.min(40, day.length)}.</div>` + content + forecastArchiveHtml();
+      const select2 = $('smDateSelect');
+      if (select2) select2.onchange = e => { selectedDate = e.target.value; render(which); };
+      if (which === 'sprint') bindPatternFinder(sprint);
+      else if (which === 'marathon') bindPatternFinder(marathon);
+      else { bindPatternFinder(sprint); bindPatternFinder(marathon); }
+    }, 20);
+  }
+
+  function inject() {
+    const sprintButton = $('sprintBtn');
+    const marathonButton = $('marathonBtn');
+    const panel = $('sprintMarathonPanel');
+    if (!sprintButton || !marathonButton || !panel) return;
+
+    const toggle = which => {
+      const open = !panel.classList.contains('show') || panel.dataset.which !== which;
+      panel.classList.toggle('show', open);
+      panel.dataset.which = open ? which : '';
+      if (open) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // LIVE FIX: при каждом открытии сначала забираем свежую базу,
+        // затем строим нижний анализ уже по последнему тиражу.
+        syncHistoryFromGithub(true).finally(() => {
+          if (panel.classList.contains('show') && panel.dataset.which === which) render(which);
+        });
+      }
+    };
+
+    sprintButton.onclick = () => toggle('sprint');
+    marathonButton.onclick = () => toggle('marathon');
+  }
+
+  function styles() {
+    if ($('sprintMarathonStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'sprintMarathonStyles';
+    style.textContent = `
+      #sprintBtn,#marathonBtn{font-size:13px;padding:9px 3px;white-space:nowrap}
+      .sm-title,.sm-head{font-size:20px;font-weight:950}.sm-date-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0}.sm-date-row select{background:#102238;color:#fff;border:1px solid #355275;border-radius:10px;padding:10px 12px;font-weight:900;font-size:16px;max-width:58%}.sm-day-count{margin:6px 0 10px;color:#9fb0c6}.sm-card{border:1px solid #2b4668;border-radius:14px;padding:12px;margin-top:10px;background:#0e1d30}.sm-weak{border:1px solid #8a642d;background:#30230f;color:#ffd98a}
+      .sm-seq{font-size:25px;font-weight:950;color:#83e6a5;letter-spacing:1px;overflow-wrap:anywhere;margin:8px 0}
+      .sm-regs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}.sm-reg{border:1px solid #355275;border-radius:9px;padding:7px 3px;text-align:center}.sm-reg b,.sm-reg span,.sm-reg small{display:block}.sm-reg span{color:#ffd764;font-weight:900}.sm-reg small{color:#9fb0c6;margin-top:2px}.sm-reg.sm-off{opacity:.48}.sm-reg.sm-off span{color:#9fb0c6}
+      .sm-chain-list{display:grid;gap:7px}.sm-chain-block{border:1px solid #2a4464;border-radius:10px;padding:9px;background:#101f33}.sm-chain-block b{display:block;margin-bottom:5px}.sm-chain-block span{color:#9fb0c6;font-weight:800}.sm-chain-block .sm-hit{display:inline;font-weight:950;margin-left:2px}.sm-chain-block .sm-hit-first{color:#54e58a}.sm-chain-block .sm-hit-other{color:#63c7ff}.sm-chain-block .sm-hit-miss{color:#ff6b6b}
+      .sm-pattern-box{border:1px solid #2b4668;border-radius:12px;padding:10px;background:#0a1728}.sm-pattern-row{display:flex;gap:8px;margin:8px 0}.sm-pattern-row input{min-width:0;flex:1;background:#102238;color:#fff;border:1px solid #355275;border-radius:9px;padding:10px;font-size:17px;font-weight:800}.sm-pattern-row button{background:#244d78;color:#fff;border:1px solid #4b78a8;border-radius:9px;padding:8px 14px;font-weight:900}.sm-pattern-summary{margin:8px 0;color:#c7d3e3}.sm-pattern-results{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.sm-pattern-chip{border:1px solid #355275;border-radius:9px;text-align:center;padding:7px 3px;background:#102238}.sm-pattern-chip b,.sm-pattern-chip strong,.sm-pattern-chip small{display:block}.sm-pattern-chip b{font-size:18px}.sm-pattern-chip strong{color:#ffd75e}.sm-pattern-chip small{color:#9fb0c6;font-size:11px}.sm-line{border-bottom:1px solid #263c58;padding:8px 2px}.sm-balls{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}.sm-ball{border:1px solid #466b48;background:#122c25;border-radius:10px;text-align:center;padding:8px}.sm-ball b{display:block;font-size:24px;color:#8eedaa}.sm-ball small{color:#9fb0c6}.sm-agree{margin-top:12px;border:1px solid #6a6036;background:#2b2712;border-radius:12px;padding:11px;color:#ffe18b}
+      .sm-archive{margin-top:12px;border:1px solid #355275;border-radius:12px;background:#0a1728;padding:9px}.sm-archive>summary,.sm-archive-day>summary{cursor:pointer;font-weight:950}.sm-archive-days{display:grid;gap:7px;margin-top:8px}.sm-archive-day{border:1px solid #2b4668;border-radius:10px;padding:8px;background:#101f33}.sm-archive-row{padding:8px 0;border-top:1px solid #263c58}.sm-archive-row:first-of-type{border-top:0}.sm-archive-row>div{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:5px}.sm-archive-row>div>span:first-child{width:24px}.sm-archive-num{display:inline-flex;align-items:center;gap:2px;border:1px solid #355275;border-radius:8px;padding:4px 6px;background:#102238;font-weight:900}.sm-archive-hit{border-color:#3f8d5a;background:#123023;color:#9af0b3}.sm-archive-hit b{color:#54e58a}
+      @media(max-width:420px){.sm-regs{grid-template-columns:repeat(5,1fr)}.sm-reg{font-size:11px}.sm-balls{grid-template-columns:repeat(3,1fr)}}`;
+    document.head.appendChild(style);
+  }
+
+  let historySyncBusy = false;
+  let lastKnownDraw = 0;
+
+  async function syncHistoryFromGithub(forceRender = false) {
+    if (historySyncBusy) return;
+    historySyncBusy = true;
+    try {
+      const response = await fetch(`keno-history.json?ts=${Date.now()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const fresh = await response.json();
+      if (!Array.isArray(fresh) || !fresh.length) return;
+
+      fresh.sort((a, b) => Number(a.draw) - Number(b.draw));
+      const freshLast = Number(fresh.at(-1)?.draw || 0);
+      const currentLast = Number(Array.isArray(draws) ? draws.at(-1)?.draw : 0) || 0;
+      const changed = freshLast > currentLast || fresh.length !== (Array.isArray(draws) ? draws.length : 0);
+
+      if (changed && Array.isArray(draws)) {
+        draws.splice(0, draws.length, ...fresh);
+        rebuildStateCache();
+        lastKnownDraw = freshLast;
+        autoForecastData = null;
+        await loadAutoForecastData();
+        captureLatestForecast();
+
+        if (typeof window.render === 'function') window.render();
+
+        const panel = $('sprintMarathonPanel');
+        if (panel?.classList.contains('show')) render(panel.dataset.which || 'marathon');
+      } else if (forceRender) {
+        const panel = $('sprintMarathonPanel');
+        if (panel?.classList.contains('show')) render(panel.dataset.which || 'marathon');
+      }
+    } catch (_) {
+      // Не ломаем приложение при кратком сбое сети: повторим на следующем цикле.
+    } finally {
+      historySyncBusy = false;
+    }
+  }
+
+  function startAutoRefresh() {
+    if (window.__pozitronSprintMarathonRefresh) clearInterval(window.__pozitronSprintMarathonRefresh);
+    lastKnownDraw = Number(Array.isArray(draws) ? draws.at(-1)?.draw : 0) || 0;
+    window.__pozitronSprintMarathonRefresh = setInterval(() => syncHistoryFromGithub(false), 15000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) syncHistoryFromGithub(true);
+    });
+    window.addEventListener('focus', () => syncHistoryFromGithub(true));
+    window.addEventListener('online', () => syncHistoryFromGithub(true));
+  }
+
+  function start() {
+    rebuildStateCache();
+    styles();
+    inject();
+    startAutoRefresh();
+    captureLatestForecast();
+    setTimeout(() => syncHistoryFromGithub(false), 1500);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
+})();
+
+</script>
+<script>
+'use strict';
+
+/*
+  ПОЗИТРОН КЕНО v7.2.1 — AI Переходов
+  Локальный ретропоиск по всей базе. Главные признаки:
+  переходы чисел, длины цепочек, диапазоны по 4 числа,
+  шаговость/чередование, одиночные и пустые столбы.
+*/
+(() => {
+  const MODULE_ID = 'maxRetroPanel';
+  const BUTTON_ID = 'maxRetroToolBtn';
+  const RESULT_ID = 'maxRetroResult';
+  const RUN_ID = 'runMaxRetroBtn';
+  const LIMIT_ID = 'maxRetroLimit';
+  const WINDOW_ID = 'maxRetroWindow';
+  const HISTORY_KEY = 'pozitronMaxRetroForecastsV72';
+
+  const $ = id => document.getElementById(id);
+  const clamp01 = v => Math.max(0, Math.min(1, Number(v) || 0));
+  const pct = v => `${Math.round(clamp01(v) * 100)}%`;
+  const pad2 = n => String(n).padStart(2, '0');
+  const fmtDate = d => d?.date || '';
+  const fmtTime = d => d?.time || '';
+  const columnOf = n => n % 10 || 10;
+  const rangeOf = n => Math.floor((n - 1) / 4); // 0..19
+  const rangeLabel = r => `${r * 4 + 1}–${r * 4 + 4}`;
+
+
+  function loadForecastHistory() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      return Array.isArray(raw) ? raw : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveForecastHistory(items) {
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(-30))); }
+    catch (_) { /* localStorage может быть недоступен */ }
+  }
+
+  function rememberForecast(baseDraw, forecast, windowSize, limit) {
+    const history = loadForecastHistory();
+    const key = String(baseDraw);
+    const item = {
+      baseDraw: Number(baseDraw),
+      targetDraw: Number(baseDraw) + 1,
+      numbers: forecast.numbers.slice(0, 12),
+      ranges: forecast.ranges.slice(0, 6),
+      windowSize,
+      limit,
+      savedAt: new Date().toISOString()
+    };
+    const index = history.findIndex(x => String(x.baseDraw) === key);
+    if (index >= 0) history[index] = item;
+    else history.push(item);
+    saveForecastHistory(history);
+  }
+
+  function verificationHtml() {
+    const history = loadForecastHistory();
+    const checks = [];
+
+    history.forEach(saved => {
+      const baseIndex = draws.findIndex(d => Number(d.draw) === Number(saved.baseDraw));
+      const actualIndex = draws.findIndex(d => Number(d.draw) === Number(saved.targetDraw));
+      if (baseIndex < 0 || actualIndex < 0) return;
+
+      const baseBalls = new Set(draws[baseIndex].balls || []);
+      const actualBalls = new Set(draws[actualIndex].balls || []);
+      const actualTransitions = [...actualBalls].filter(n => baseBalls.has(n));
+      const hits = (saved.numbers || []).filter(n => actualTransitions.includes(n));
+      const firstHit = hits.includes(saved.numbers?.[0]);
+      const topFourHits = (saved.numbers || []).slice(0, 4).filter(n => actualTransitions.includes(n));
+
+      const beforeOcc = occupancy(baseIndex);
+      const afterOcc = occupancy(actualIndex);
+      const actualUpRanges = afterOcc.map((v, r) => v > beforeOcc[r] ? r : -1).filter(r => r >= 0);
+      const rangeHits = (saved.ranges || []).filter(r => actualUpRanges.includes(r));
+
+      checks.push({ saved, baseIndex, actualIndex, actualTransitions, hits, firstHit, topFourHits, rangeHits });
+    });
+
+    if (!checks.length) return '';
+    const latest = checks.sort((a, b) => b.saved.baseDraw - a.saved.baseDraw)[0];
+    const predicted = latest.saved.numbers.map((n, i) => {
+      const hit = latest.hits.includes(n);
+      const mark = hit ? (i === 0 ? '✅' : i < 4 ? '☑️' : '•') : '';
+      return `${pad2(n)}${mark}`;
+    }).join(' ');
+    const fact = latest.actualTransitions.length ? latest.actualTransitions.map(pad2).join(' ') : 'нет';
+    const rangeFact = latest.rangeHits.length
+      ? latest.rangeHits.map(rangeLabel).join(' ')
+      : 'нет';
+
+    return `<div class="section"><span>Проверка прошлого прогноза</span></div>
+      <div class="row tr-check">
+        <b>№${latest.saved.baseDraw} → №${latest.saved.targetDraw}</b>
+        <div class="small">Прогноз: ${predicted}</div>
+        <div class="tr-check-fact">Факт переходов: ${fact}</div>
+        <div class="tr-check-total">Совпало ${latest.hits.length}/${latest.saved.numbers.length} · в первых 4: ${latest.topFourHits.length} · диапазоны ${latest.rangeHits.length}/${latest.saved.ranges.length}</div>
+        <div class="small">Подтвердились диапазоны: ${rangeFact}</div>
+      </div>`;
+  }
+
+  function setSimilarity(a, b) {
+    const A = new Set(a || []), B = new Set(b || []);
+    const union = new Set([...A, ...B]);
+    if (!union.size) return 1;
+    let same = 0;
+    A.forEach(v => { if (B.has(v)) same += 1; });
+    return same / union.size;
+  }
+
+  function vectorSimilarity(a, b) {
+    const len = Math.max(a.length, b.length);
+    if (!len) return 1;
+    let diff = 0, max = 0;
+    for (let i = 0; i < len; i += 1) {
+      diff += Math.abs((a[i] || 0) - (b[i] || 0));
+      max += Math.max(1, a[i] || 0, b[i] || 0);
+    }
+    return clamp01(1 - diff / max);
+  }
+
+  function safeAnalysis(draw) {
+    try { return typeof analysis === 'function' ? analysis(draw) : {}; }
+    catch (_) { return {}; }
+  }
+
+  function transitionSet(index) {
+    if (index <= 0) return new Set();
+    if (typeof transitions === 'function') return transitions(index);
+    const previous = new Set(draws[index - 1].balls || []);
+    return new Set((draws[index].balls || []).filter(n => previous.has(n)));
+  }
+
+  function chainLength(index, number) {
+    let length = 1;
+    for (let i = index; i > 0; i -= 1) {
+      const now = new Set(draws[i].balls || []);
+      const prev = new Set(draws[i - 1].balls || []);
+      if (now.has(number) && prev.has(number)) length += 1;
+      else break;
+    }
+    return length;
+  }
+
+  function occupancy(index) {
+    const counts = Array(20).fill(0);
+    (draws[index]?.balls || []).forEach(n => { counts[rangeOf(n)] += 1; });
+    return counts;
+  }
+
+  function movementSignature(index) {
+    if (index <= 0) return Array(20).fill(0);
+    const before = occupancy(index - 1), now = occupancy(index);
+    return now.map((v, i) => Math.sign(v - before[i])); // -1, 0, +1
+  }
+
+  function innerRangePattern(index) {
+    const out = [];
+    for (let r = 0; r < 20; r += 1) {
+      let mask = 0;
+      (draws[index]?.balls || []).forEach(n => {
+        if (rangeOf(n) === r) mask |= 1 << ((n - 1) % 4);
+      });
+      out.push(mask);
+    }
+    return out;
+  }
+
+  function alternationScore(index) {
+    if (index < 1) return 0;
+    const a = innerRangePattern(index - 1), b = innerRangePattern(index);
+    let alternating = 0, active = 0;
+    for (let r = 0; r < 20; r += 1) {
+      if (a[r] || b[r]) {
+        active += 1;
+        if ((a[r] & b[r]) === 0 && a[r] !== b[r]) alternating += 1;
+      }
+    }
+    return active ? alternating / active : 0;
+  }
+
+  function windowFeatures(endIndex, windowSize) {
+    const start = Math.max(1, endIndex - windowSize + 1);
+    const transitionCounts = [];
+    const rangeFlow = Array(20).fill(0);
+    const movement = Array(20).fill(0);
+    const allTransitionNumbers = [];
+    const transitionColumns = [];
+    const chainHistogram = Array(6).fill(0);
+    let alternation = 0;
+
+    for (let i = start; i <= endIndex; i += 1) {
+      const pass = [...transitionSet(i)];
+      transitionCounts.push(pass.length);
+      allTransitionNumbers.push(...pass);
+      transitionColumns.push(...pass.map(columnOf));
+      pass.forEach(n => { rangeFlow[rangeOf(n)] += 1; });
+      movementSignature(i).forEach((v, r) => { movement[r] += v; });
+      pass.forEach(n => {
+        const len = Math.min(5, chainLength(i, n));
+        chainHistogram[len] += 1;
+      });
+      alternation += alternationScore(i);
+    }
+
+    const info = safeAnalysis(draws[endIndex]);
+    const currentPass = [...transitionSet(endIndex)];
+    return {
+      endIndex,
+      transitionCounts,
+      currentPass,
+      allTransitionNumbers,
+      transitionColumns,
+      rangeFlow,
+      occupancy: occupancy(endIndex),
+      movement,
+      pattern: innerRangePattern(endIndex),
+      chainHistogram,
+      alternation: alternation / Math.max(1, endIndex - start + 1),
+      single: info.single || [],
+      empty: info.empty || [],
+      even: info.even || 0,
+      sum: info.sum || 0
+    };
+  }
+
+  function patternSimilarity(a, b) {
+    let score = 0;
+    for (let i = 0; i < 20; i += 1) {
+      const A = a[i], B = b[i];
+      if (A === B) score += 1;
+      else {
+        const inter = A & B;
+        const union = A | B;
+        const bits = x => x.toString(2).split('1').length - 1;
+        score += union ? bits(inter) / bits(union) : 1;
+      }
+    }
+    return score / 20;
+  }
+
+  function compare(target, candidate) {
+    const transitionRhythm = vectorSimilarity(target.transitionCounts, candidate.transitionCounts);
+    const currentTransitions = setSimilarity(target.currentPass, candidate.currentPass);
+    const transitionColumns = setSimilarity(target.transitionColumns, candidate.transitionColumns);
+    const rangeFlow = vectorSimilarity(target.rangeFlow, candidate.rangeFlow);
+    const occupancyScore = vectorSimilarity(target.occupancy, candidate.occupancy);
+    const movement = vectorSimilarity(target.movement, candidate.movement);
+    const pattern = patternSimilarity(target.pattern, candidate.pattern);
+    const chains = vectorSimilarity(target.chainHistogram, candidate.chainHistogram);
+    const shape = (setSimilarity(target.single, candidate.single) + setSimilarity(target.empty, candidate.empty)) / 2;
+    const alternation = 1 - Math.min(1, Math.abs(target.alternation - candidate.alternation));
+
+    const score =
+      currentTransitions * 0.22 +
+      occupancyScore * 0.18 +
+      transitionRhythm * 0.15 +
+      chains * 0.12 +
+      transitionColumns * 0.10 +
+      rangeFlow * 0.09 +
+      movement * 0.06 +
+      pattern * 0.04 +
+      alternation * 0.02 +
+      shape * 0.02;
+
+    return { score, transitionRhythm, currentTransitions, transitionColumns, rangeFlow, occupancyScore, movement, pattern, chains, alternation, shape };
+  }
+
+  function buildForecast(rows, targetIndex) {
+    const numberScores = Array(81).fill(0);
+    const numberCases = Array(81).fill(0);
+    const rangeScores = Array(20).fill(0);
+    const currentBalls = new Set(draws[targetIndex].balls || []);
+    const currentOcc = occupancy(targetIndex);
+
+    rows.forEach((row, rank) => {
+      const next = draws[row.nextIndex];
+      const source = new Set(draws[row.index].balls || []);
+      const nextTransitions = (next.balls || []).filter(n => source.has(n));
+      const beforeOcc = occupancy(row.index);
+      const afterOcc = occupancy(row.nextIndex);
+      const rankWeight = Math.max(0.25, 1 - rank / Math.max(10, rows.length));
+      const weight = (0.35 + row.score * 0.65) * rankWeight;
+
+      nextTransitions.forEach(n => {
+        numberScores[n] += weight;
+        numberCases[n] += 1;
+        rangeScores[rangeOf(n)] += weight * 0.65;
+      });
+
+      for (let r = 0; r < 20; r += 1) {
+        const delta = afterOcc[r] - beforeOcc[r];
+        const retained = Math.min(beforeOcc[r], afterOcc[r]);
+        const targetDensity = currentOcc[r] / 4;
+        rangeScores[r] += weight * (
+          Math.max(0, delta) * 0.95 +
+          retained * 0.18 +
+          targetDensity * 0.12
+        );
+      }
+    });
+
+    const numbers = [...currentBalls]
+      .sort((a, b) => numberScores[b] - numberScores[a] || numberCases[b] - numberCases[a] || a - b)
+      .slice(0, 12);
+    const ranges = Array.from({ length: 20 }, (_, r) => r)
+      .sort((a, b) => rangeScores[b] - rangeScores[a] || a - b)
+      .slice(0, 6);
+    return { numbers, ranges, numberScores, numberCases, rangeScores };
+  }
+
+  function render() {
+    const box = $(RESULT_ID);
+    if (!box) return;
+    if (typeof draws === 'undefined' || !Array.isArray(draws) || draws.length < 50) {
+      box.innerHTML = '<div class="row small">Для AI Переходов нужно хотя бы 50 сохранённых тиражей.</div>';
+      return;
+    }
+
+    const limit = Math.max(8, Math.min(40, Number($(LIMIT_ID)?.value || 16)));
+    const windowSize = Math.max(2, Math.min(8, Number($(WINDOW_ID)?.value || 5)));
+    const targetIndex = draws.length - 1;
+    const target = windowFeatures(targetIndex, windowSize);
+    const rows = [];
+
+    for (let index = windowSize; index < targetIndex; index += 1) {
+      if (targetIndex - index < windowSize + 1) continue;
+      const result = compare(target, windowFeatures(index, windowSize));
+      rows.push({ index, nextIndex: index + 1, ...result });
+    }
+    rows.sort((a, b) => b.score - a.score || draws[b.index].draw - draws[a.index].draw);
+    const top = rows.slice(0, limit);
+    if (!top.length) {
+      box.innerHTML = '<div class="row small">Завершённых исторических аналогов пока не найдено.</div>';
+      return;
+    }
+
+    const forecast = buildForecast(top, targetIndex);
+    const checkHtml = verificationHtml();
+    rememberForecast(draws[targetIndex].draw, forecast, windowSize, limit);
+    const maxScore = Math.max(...forecast.numberScores, 0.0001);
+    const transitionCards = forecast.numbers.map((n, place) => {
+      const confidence = Math.round(forecast.numberScores[n] / maxScore * 100);
+      const chain = chainLength(targetIndex, n);
+      return `<div class="tr-number-card">
+        <div class="small">${place + 1} место · ${forecast.numberCases[n]} аналогов</div>
+        <div class="tr-number">${pad2(n)}</div>
+        <div>${confidence}% веса · цепь ст${chain}</div>
+      </div>`;
+    }).join('');
+
+    const maxRange = Math.max(...forecast.rangeScores, 0.0001);
+    const rangeCards = forecast.ranges.map(r => `<span><b>${rangeLabel(r)}</b> · ${Math.round(forecast.rangeScores[r] / maxRange * 100)}%</span>`).join('');
+
+    const currentPass = target.currentPass.length
+      ? target.currentPass.map(n => `${pad2(n)}<small>ст${chainLength(targetIndex, n)}</small>`).join(' ')
+      : 'нет';
+
+    const analogs = top.slice(0, 12).map((row, rank) => {
+      const old = draws[row.index], next = draws[row.nextIndex];
+      const oldPass = [...transitionSet(row.index)];
+      const nextPass = [...transitionSet(row.nextIndex)];
+      return `<div class="tr-analog">
+        <div class="tr-analog-head"><b>${rank + 1}. №${old.draw} • ${fmtDate(old)} • ${fmtTime(old)} 🔴 ст${(old.column||columnOf((oldPass[0]||10)))}</b><strong>${pct(row.score)}</strong></div>
+        <div class="small">Переходы тогда: ${oldPass.length ? oldPass.map(pad2).join(' ') : 'нет'}</div>
+        <div class="tr-next">➡ №${next.draw}: ${nextPass.length ? nextPass.map(pad2).join(' ') : 'без переходов'} 🔴 ст${(next.column||columnOf((nextPass[0]||10)))}</div>
+        <div class="breakdown">
+          <span>переходы ${pct(row.currentTransitions)}</span><span>заполняемость ${pct(row.occupancyScore)}</span>
+          <span>ритм ${pct(row.transitionRhythm)}</span><span>диапазоны ${pct(row.rangeFlow)}</span>
+          <span>цепочки ${pct(row.chains)}</span><span>столбы ${pct(row.transitionColumns)}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    box.innerHTML = `
+      <div class="row tr-summary">
+        <b>Текущий тираж №${draws[targetIndex].draw}</b><br>
+        <span class="small">Окно анализа: ${windowSize} тиражей · сравнено ${rows.length.toLocaleString('ru-RU')} завершённых ситуаций.</span>
+        <div class="tr-current">Переходы: ${currentPass}</div>
+      </div>
+      ${checkHtml}
+      <div class="section"><span>🧠 Прогноз продолжения переходов</span></div>
+      <div class="tr-grid">${transitionCards}</div>
+      <div class="section"><span>Диапазоны вероятного заполнения</span></div>
+      <div class="freq">${rangeCards}</div>
+      <div class="row small"><b>Как читать:</b> в прогноз входят только числа последнего тиража — именно они физически могут перейти в следующий. Процент является относительным весом среди найденных аналогов, а не гарантией.</div>
+      <div class="section"><span>Лучшие ретроаналоги</span></div>
+      ${analogs}`;
+  }
+
+  function injectStyles() {
+    if ($('maxRetroStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'maxRetroStyles';
+    style.textContent = `
+      .tr-title{font-size:18px;font-weight:950}.tr-controls{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;margin-top:10px}
+      .tr-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.tr-number-card{border:1px solid #466b48;background:#122c25;border-radius:11px;padding:10px;text-align:center}
+      .tr-number{font-size:27px;font-weight:950;color:#8eedaa}.tr-summary{border-color:#4f744d}.tr-current{margin-top:7px;font-weight:900;color:#ffe18b}
+      .tr-current small{color:#96a9c1;margin-left:2px;margin-right:7px}.tr-analog{background:#101f33;border:1px solid #2a4464;border-radius:11px;padding:10px;margin-top:8px}
+      .tr-analog-head{display:flex;justify-content:space-between;gap:8px}.tr-analog-head strong{font-size:20px;color:#8eedaa}.tr-next{margin-top:6px;font-weight:900;color:#ffd35c}
+      .tr-check{border-color:#496987}.tr-check-fact{margin-top:7px;font-weight:900;color:#ffd35c}.tr-check-total{margin-top:7px;font-weight:950;color:#8eedaa}
+      @media(max-width:480px){.tr-controls{grid-template-columns:1fr 1fr}.tr-controls button{grid-column:1/-1}}
+      @media(min-width:620px){.tr-grid{grid-template-columns:repeat(4,1fr)}}`;
+    document.head.appendChild(style);
+  }
+
+  function injectInterface() {
+    const tools = document.querySelector('.tools.main-tools') || document.querySelector('.tools');
+    if (!tools) return;
+    let button = $(BUTTON_ID);
+    if (!button) {
+      button = document.createElement('button');
+      button.id = BUTTON_ID;
+      button.className = 'tool';
+      button.type = 'button';
+      button.textContent = '🧠 AI Переходов ▶';
+      tools.appendChild(button);
+    }
+
+    let section = $(MODULE_ID);
+    if (!section) {
+      section = document.createElement('section');
+      section.id = MODULE_ID;
+      section.className = 'card panel';
+      section.innerHTML = `
+        <div class="tr-title">🧠 AI Переходов v7.2.1</div>
+        <div class="small" style="margin-top:5px">Ретропоиск по всей базе: переходы, цепочки, диапазоны 1–4, 5–8… 77–80, шаговость, чередование, одиночные и пустые столбы.</div>
+        <div class="tr-controls">
+          <select id="${WINDOW_ID}"><option value="3">Окно 3 тиража</option><option value="5" selected>Окно 5 тиражей</option><option value="7">Окно 7 тиражей</option></select>
+          <select id="${LIMIT_ID}"><option value="12">12 аналогов</option><option value="16" selected>16 аналогов</option><option value="24">24 аналога</option><option value="40">40 аналогов</option></select>
+          <button id="${RUN_ID}" class="tool" type="button">🔎 Анализировать</button>
+        </div>
+        <div id="${RESULT_ID}"></div>`;
+      const searchPanel = $('searchPanel');
+      searchPanel?.parentNode?.insertBefore(section, searchPanel);
+    }
+
+    if (button.dataset.maxRetroBound === '1') return;
+    button.dataset.maxRetroBound = '1';
+
+    button.addEventListener('click', () => {
+      const open = !section.classList.contains('show');
+      section.classList.toggle('show', open);
+      button.textContent = open ? '🧠 AI Переходов ▼' : '🧠 AI Переходов ▶';
+      if (open && !$(RESULT_ID).innerHTML.trim()) render();
+      if (open) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    $(RUN_ID)?.addEventListener('click', render);
+    $(LIMIT_ID)?.addEventListener('change', render);
+    $(WINDOW_ID)?.addEventListener('change', render);
+  }
+
+  function start() { injectStyles(); injectInterface(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
+})();
+
+</script>
 </body>
 </html>
