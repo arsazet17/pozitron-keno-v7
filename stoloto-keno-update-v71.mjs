@@ -6,6 +6,7 @@ const LOGIN_URL='https://oauth.stoloto.ru/login';
 const ARCHIVE_URL='https://m.stoloto.ru/keno2/archive/';
 const HISTORY_FILE='keno-history-v71.json';
 const STATUS_FILE='keno-status-v71.json';
+const SOURCE='Официальный Столото · OAuth · двойная проверка';
 const EMAIL=process.env.STOLOTO_EMAIL||'';
 const PASSWORD=process.env.STOLOTO_PASSWORD||'';
 
@@ -31,6 +32,14 @@ function normalizeDateLabel(label){
   return p?`${pad2(p.d)}.${pad2(p.m)}.${String(p.y).slice(-2)}`:null;
 }
 function normalizeTime(v){const m=String(v??'').match(/(\d{1,2}):(\d{2})/);if(!m)return null;const h=+m[1],min=+m[2];if(h>23||min>59)return null;return`${pad2(h)}:${pad2(min)}`}
+function parseParity(text){
+  const s=norm(text).toLowerCase();
+  if(s.includes('больше нечётных')||s.includes('больше нечетных'))return 'Больше нечётных';
+  if(s.includes('больше чётных')||s.includes('больше четных'))return 'Больше чётных';
+  if(s.includes('поровну'))return 'Поровну';
+  return null;
+}
+function parseColumn(text){const m=norm(text).match(/столбец\s*([1-9]|10)\b/i);return m?Number(m[1]):null}
 function parseDraw(t){const m=String(t).match(/№\s*([0-9]{4,})/);return m?+m[1]:null}
 function parseTime(t){const m=String(t).match(/\b([01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\b/);return m?normalizeTime(m[0]):null}
 function findDateLabel(text){
@@ -117,15 +126,19 @@ function parseRows(raw){
     if(local)carry=local;
     const draw=parseDraw(text);if(!draw)continue;
     const time=parseTime(text);if(!time)continue;
+    const parity=parseParity(text);if(!parity)throw new Error(`FAIL: тираж №${draw}: Столото не отдал чётность`);
+    const column=parseColumn(text);if(!column)throw new Error(`FAIL: тираж №${draw}: Столото не отдал «Столбец N»`);
     const date=normalizeDateLabel(local||carry);if(!date)continue;
     let balls=(row.buttons||[]).map(x=>Number(norm(x))).filter(n=>Number.isInteger(n)&&n>=1&&n<=80);
     if(balls.length>20)balls=balls.slice(-20);
-    if(balls.length!==20||new Set(balls).size!==20)continue;
-    out.push({draw,date,time,balls});
+    if(balls.length!==20)throw new Error(`FAIL: тираж №${draw}: ожидалось 20 чисел, найдено ${balls.length}`);
+    if(new Set(balls).size!==20)throw new Error(`FAIL: тираж №${draw}: числа содержат повторы`);
+    out.push({draw,date,time,parity,column,balls});
   }
   return [...new Map(out.map(d=>[d.draw,d])).values()].sort((a,b)=>a.draw-b.draw);
 }
-function canon(d){return JSON.stringify({draw:d.draw,date:d.date,time:d.time,balls:d.balls})}
+function canonCore(d){return JSON.stringify({draw:d.draw,date:d.date,time:d.time,balls:d.balls})}
+function canonOfficial(d){return JSON.stringify({draw:d.draw,date:d.date,time:d.time,parity:d.parity,column:d.column,balls:d.balls})}
 
 async function readTwice(page,targetRows){
   const reads=[];
@@ -138,15 +151,17 @@ async function readTwice(page,targetRows){
   }
   const a=new Map(reads[0].map(d=>[d.draw,d]));
   const b=new Map(reads[1].map(d=>[d.draw,d]));
-  const stable=[];
+  const stable=[],mismatches=[];
   for(const [draw,d1] of a){
     const d2=b.get(draw);
-    if(d2&&canon(d1)===canon(d2))stable.push(d1);
+    if(d2&&canonOfficial(d1)===canonOfficial(d2))stable.push(d1);
+    else if(d2)mismatches.push(draw);
   }
   stable.sort((x,y)=>x.draw-y.draw);
   if(stable.length<60)throw new Error(`FAIL: двойная проверка: стабильны только ${stable.length}`);
-  console.log(`Двойная проверка PASS: ${stable.length} тиражей`);
-  return stable;
+  if(mismatches.length)console.log(`WARN: нестабильные строки пропущены: ${mismatches.slice(0,20).map(n=>`№${n}`).join(', ')}`);
+  console.log(`Двойная проверка PASS: ${stable.length} тиражей, включая чётность и столб`);
+  return {stable,readingCounts:reads.map(x=>x.length),mismatches};
 }
 
 async function readHistory(){
@@ -168,7 +183,7 @@ function validateAndFindFresh(stoloto,historyRaw){
   const officialMap=new Map(stoloto.map(d=>[d.draw,d]));
   const anchor=officialMap.get(last.draw);
   if(!anchor)throw new Error(`FAIL: Столото не догружен до anchor №${last.draw}`);
-  if(canon(anchor)!==canon(last))throw new Error(`FAIL: anchor №${last.draw} не совпал со Столото`);
+  if(canonCore(anchor)!==canonCore(last))throw new Error(`FAIL: anchor №${last.draw} не совпал со Столото`);
   const fresh=stoloto.filter(d=>d.draw>last.draw).sort((a,b)=>a.draw-b.draw);
   let expected=last.draw+1;
   for(const d of fresh){
@@ -177,6 +192,54 @@ function validateAndFindFresh(stoloto,historyRaw){
   }
   return {last,fresh};
 }
+
+function mergeWithOfficialFields(historyRaw,stable,fresh){
+  const officialByDraw=new Map(stable.map(d=>[Number(d.draw),d]));
+  const seen=new Set();
+  const merged=historyRaw.map(original=>{
+    const draw=Number(original?.draw??original?.number??original?.id);
+    seen.add(draw);
+    const official=officialByDraw.get(draw);
+    if(!official)return original;
+    return {
+      ...original,
+      draw,
+      date:official.date,
+      time:official.time,
+      balls:official.balls,
+      parity:official.parity,
+      column:official.column,
+      columnSource:'stoloto-official',
+      source:SOURCE
+    };
+  });
+  for(const d of fresh){
+    if(seen.has(Number(d.draw)))continue;
+    merged.push({...d,columnSource:'stoloto-official',source:SOURCE});
+  }
+  return merged.sort((a,b)=>Number(a.draw??a.number??a.id)-Number(b.draw??b.number??b.id));
+}
+
+async function readJson(file,fallback){
+  try{return JSON.parse(await fs.readFile(file,'utf8'))}catch{return fallback}
+}
+async function writeJsonAtomic(file,value,pretty=false){
+  const temp=`${file}.tmp`;
+  await fs.writeFile(temp,JSON.stringify(value,null,pretty?2:0)+'\n');
+  await fs.rename(temp,file);
+}
+function validOfficialColumn(value){
+  const n=Number(value);
+  return Number.isInteger(n)&&n>=1&&n<=10?n:null;
+}
+function validOfficialParity(value){return ['Больше чётных','Больше нечётных','Поровну'].includes(value)}
+function selfTest(){
+  if(parseParity('Больше чётных')!=='Больше чётных')throw new Error('SELFTEST parity');
+  if(parseColumn('Столбец 10')!==10)throw new Error('SELFTEST column');
+  console.log('SELFTEST PASS');
+}
+
+selfTest();
 
 const browser=await chromium.launch({headless:true});
 try{
@@ -192,34 +255,57 @@ try{
   const historyRaw=await readHistory();
   const lastDraw=Math.max(...historyRaw.map(x=>Number(x?.draw??x?.number??x?.id)||0));
 
-  let stoloto=null;
+  let doubleRead=null;
   for(const depth of [220,500,900,1400]){
-    stoloto=await readTwice(page,depth);
-    if(stoloto.some(d=>d.draw===lastDraw))break;
+    doubleRead=await readTwice(page,depth);
+    if(doubleRead.stable.some(d=>d.draw===lastDraw))break;
     console.log(`Anchor №${lastDraw} пока не найден, увеличиваем глубину`);
   }
 
-  const {fresh}=validateAndFindFresh(stoloto,historyRaw);
-  if(!fresh.length){
-    console.log(`PASS: новых тиражей нет, последний №${lastDraw}`);
-  }else{
-    const source='Официальный Столото · OAuth · двойная проверка';
-    const additions=fresh.map(d=>({...d,source}));
-    const merged=[...historyRaw,...additions].sort((a,b)=>Number(a.draw??a.number??a.id)-Number(b.draw??b.number??b.id));
-    await fs.writeFile(HISTORY_FILE,JSON.stringify(merged)+'\n');
-    const last=merged.at(-1);
-    await fs.writeFile(STATUS_FILE,JSON.stringify({
-      version:'7.1.4',
-      source:ARCHIVE_URL,
-      updatedAt:new Date().toISOString(),
-      drawsStored:merged.length,
-      latestDraw:Number(last.draw??last.number??last.id),
-      latestDate:String(last.date||''),
-      latestTime:String(last.time||''),
-      verification:'double'
-    },null,2)+'\n');
-    console.log(`PASS: добавлено ${fresh.length}, новый последний №${last.draw}`);
-  }
+  const {fresh}=validateAndFindFresh(doubleRead.stable,historyRaw);
+  const merged=mergeWithOfficialFields(historyRaw,doubleRead.stable,fresh);
+  const last=merged.at(-1);
+  if(!last)throw new Error('FAIL: итоговая история KENO 7.1 пуста');
+  const oldStatus=await readJson(STATUS_FILE,null);
+  const historyChanged=JSON.stringify(merged)!==JSON.stringify(historyRaw);
+  const now=new Date().toISOString();
+  const latestColumn=validOfficialColumn(last.column);
+  const statusNeedsOfficialFields=!validOfficialParity(oldStatus?.latestParity)||
+    !validOfficialColumn(oldStatus?.latestColumn)||
+    !Number.isInteger(oldStatus?.officialParityStored)||
+    !Number.isInteger(oldStatus?.officialColumnsStored);
+  const refreshStatus=historyChanged||statusNeedsOfficialFields;
+  const doubleCheck=refreshStatus?{
+    readingCounts:doubleRead.readingCounts,
+    stableCount:doubleRead.stable.length,
+    unstableSkipped:doubleRead.mismatches.length
+  }:(oldStatus?.stolotoDoubleCheck||{
+    readingCounts:doubleRead.readingCounts,
+    stableCount:doubleRead.stable.length,
+    unstableSkipped:doubleRead.mismatches.length
+  });
+
+  await writeJsonAtomic(HISTORY_FILE,merged,false);
+  await writeJsonAtomic(STATUS_FILE,{
+    version:'7.1.4',
+    source:ARCHIVE_URL,
+    sourceLabel:SOURCE,
+    updatedAt:refreshStatus?now:(oldStatus?.updatedAt||now),
+    checkedAt:refreshStatus?now:(oldStatus?.checkedAt||oldStatus?.updatedAt||now),
+    drawsStored:merged.length,
+    latestDraw:Number(last.draw??last.number??last.id),
+    latestDate:String(last.date||''),
+    latestTime:String(last.time||''),
+    latestParity:validOfficialParity(last.parity)?last.parity:null,
+    latestColumn,
+    latestColumnSource:latestColumn?'stoloto-official':null,
+    officialParityStored:merged.filter(d=>validOfficialParity(d.parity)).length,
+    officialColumnsStored:merged.filter(d=>validOfficialColumn(d.column)).length,
+    verification:'double-official-metadata',
+    stolotoDoubleCheck:doubleCheck
+  },true);
+  console.log(`PASS: добавлено ${fresh.length}; официальный столб/чётность сохранены для ${doubleRead.stable.length} строк`);
+  console.log(`Последний №${last.draw}: ${last.parity} · Столбец ${latestColumn}`);
 }finally{
   await browser.close();
 }

@@ -112,7 +112,7 @@ dialog::backdrop{background:rgba(0,0,0,.72)}
   <div class="top">
     <div>
       <div class="brand">🎯 ПОЗИТРОН КЕНО v7.1</div>
-      <div style="display:inline-block;margin-top:6px;padding:5px 10px;border:2px solid #4ade80;border-radius:10px;color:#4ade80;font-weight:900">СБОРКА 7.1.3 · АВТООБНОВЛЕНИЕ · 4 ТРОЙКИ</div>
+      <div style="display:inline-block;margin-top:6px;padding:5px 10px;border:2px solid #4ade80;border-radius:10px;color:#4ade80;font-weight:900">СБОРКА 7.1.4 · АВТООБНОВЛЕНИЕ · 4 ТРОЙКИ</div>
       <div id="status" class="sub">v7.1 · AI-анализатор и честная проверка · база загружается…</div>
     </div>
     <div>
@@ -228,7 +228,7 @@ const pad=n=>String(n).padStart(2,'0');
 const column=n=>n%10===0?10:n%10;
 let draws=[],mode='fall',timer=null;
 const analysisCache=new WeakMap();
-const BUILD_ID='7.1.3-auto-update-20260802';
+const BUILD_ID='7.1.4-official-fields-20260913';
 const DEFAULT_DRAW_SOURCE='./keno-history-v71.json';
 const SOURCE_RESET_KEY='pozitron_v71_source_reset_713';
 const LEGACY_SOURCE_PARTS=['pozitron-keno-v3.netlify.app','pozitron-keno-v72','raw.githubusercontent.com/arsazet17/pozitron-keno-v72'];
@@ -276,7 +276,7 @@ async function ensureAppBase(){
   if(!items.length)throw new Error('база не распознана');
   draws=dedupe(items);
   render();
-  $('status').textContent=`v7.1.3 · база: ${draws.length.toLocaleString('ru-RU')} · последний №${draws.at(-1).draw}`;
+  $('status').textContent=`v7.1.4 · база: ${draws.length.toLocaleString('ru-RU')} · последний №${draws.at(-1).draw}`;
  }catch(error){
   $('status').textContent='База не загрузилась: '+error.message;
  }
@@ -296,6 +296,14 @@ function normDate(v){
 }
 function showDate(v){const p=normDate(v).split('-');return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:v}
 function normTime(v){return String(v||'').match(/\d{1,2}:\d{2}(?::\d{2})?/)?.[0]||String(v||'')}
+function storedParity(v){
+ const s=String(v||'').trim().toLowerCase();
+ if(s==='больше чётных'||s==='больше четных')return 'Больше чётных';
+ if(s==='больше нечётных'||s==='больше нечетных')return 'Больше нечётных';
+ if(s==='поровну')return 'Поровну';
+ return null
+}
+function storedColumn(v){const n=Number(v);return Number.isInteger(n)&&n>=1&&n<=10?n:null}
 function valid(o){
  const draw=Number(o.draw??o.number??o.drawNumber??o.id);
  const date=normDate(o.date??o.drawDate??o.datetime??'');
@@ -303,7 +311,12 @@ function valid(o){
  let balls=o.balls??o.numbers??o.results??o.result??o.winningNumbers;
  if(typeof balls==='string')balls=(balls.match(/\d+/g)||[]).map(Number);
  balls=(balls||[]).map(Number).slice(0,20);
- return Number.isFinite(draw)&&balls.length===20&&balls.every(n=>n>=1&&n<=80)?{draw,date,time,balls}:null;
+ if(!Number.isFinite(draw)||balls.length!==20||!balls.every(n=>n>=1&&n<=80))return null;
+ const d={draw,date,time,balls},parity=storedParity(o.parity),officialColumn=storedColumn(o.column);
+ if(parity)d.parity=parity;
+ if(officialColumn){d.column=officialColumn;d.columnSource=String(o.columnSource||'stoloto-official')}
+ if(o.source)d.source=String(o.source);
+ return d;
 }
 function walk(o,out=[]){
  if(Array.isArray(o)){o.forEach(x=>walk(x,out));return out}
@@ -339,7 +352,8 @@ function analysis(d){
  d.balls.forEach(n=>count[column(n)]++);
  const max=Math.max(...count.slice(1));
  for(let c=1;c<=10;c++)if(count[c]===max){let seen=0;for(let i=0;i<20;i++){if(column(d.balls[i])===c)seen++;if(seen===max){reach[c]=i;break}}}
- let winner=1;for(let c=2;c<=10;c++)if(count[c]>count[winner]||(count[c]===count[winner]&&reach[c]<reach[winner]))winner=c;
+ let calculatedWinner=1;for(let c=2;c<=10;c++)if(count[c]>count[calculatedWinner]||(count[c]===count[calculatedWinner]&&reach[c]<reach[calculatedWinner]))calculatedWinner=c;
+ const winner=storedColumn(d.column)||calculatedWinner;
  const even=d.balls.filter(n=>n%2===0).length,odd=20-even,sum=d.balls.reduce((a,b)=>a+b,0),empty=[],single=[];
  for(let c=1;c<=10;c++){if(count[c]===0)empty.push(c);if(count[c]===1)single.push(c)}
  const result={winner,even,odd,sum,empty,single};
@@ -376,7 +390,7 @@ function ball(d,i,p){
  return `<div class="ball ${isPass?'pass':''} ${same?'same':''}">${mode==='both'?text:text+(isPass?'🔸':'')}</div>`
 }
 function card(d,i,label){
- const a=analysis(d),parity=a.even===a.odd?'поровну':a.even>a.odd?'чёт':'нечёт';
+ const a=analysis(d),parity=storedParity(d.parity)||(a.even===a.odd?'Поровну':a.even>a.odd?'Больше чётных':'Больше нечётных');
  return `<section class="card">
   <div class="head"><div><div class="label">${label}</div><div class="draw">№${d.draw}</div><div class="time">${showDate(d.date)} ${normTime(d.time)}</div></div><div class="win">🔴 ст${a.winner}</div></div>
   <div class="meta"><span>Σ ${a.sum}</span><span>${a.even}/${a.odd}</span><span>${parity}</span></div>
@@ -444,7 +458,7 @@ function renderArchiveDay(date){
   return `<div class="chain"><div class="chain-top">${b[0].draw}–${b.at(-1).draw} | ${showDate(b[0].date)} | ${normTime(b[0].time)}–${normTime(b.at(-1).time)}</div><div class="seq">${seq}</div>${b.length===5&&gap>30?'<div class="break">☕ перерыв 1 час</div>':b.length<5?'<div class="open">Открытая цепочка</div>':''}</div>`
  }).join('');
  const drawsHtml=day.map((d,idx)=>{
-  const a=analysis(d),parity=a.even===a.odd?'поровну':a.even>a.odd?'чёт':'нечёт';
+  const a=analysis(d),parity=storedParity(d.parity)||(a.even===a.odd?'Поровну':a.even>a.odd?'Больше чётных':'Больше нечётных');
   return `<section class="card" style="margin:10px 0"><div class="head"><div><div class="draw">№${d.draw}</div><div class="time">${showDate(d.date)} ${normTime(d.time)}</div></div><div class="win">🔴 ст${a.winner}</div></div><div class="meta"><span>Σ ${a.sum}</span><span>${a.even}/${a.odd}</span><span>${parity}</span></div><div class="numbers">${d.balls.map(n=>`<div class="ball">${pad(n)}</div>`).join('')}</div><div class="notes">${a.single.length?`<span class="single">☝️ одиночные: ${a.single.map(x=>'ст'+x).join(', ')}</span>`:''}${a.single.length&&a.empty.length?' · ':''}${a.empty.length?`<span class="empty">${a.empty.map(x=>`ст${x} ☐ — пустой!`).join(' ')}</span>`:''}</div></section>`
  }).join('');
  $('archive').innerHTML=`<button type="button" id="archiveBack" class="tool" style="width:100%;margin-bottom:10px">← Все даты</button><div class="section" style="margin-top:0"><span>${showDate(date)} — ${day.length} тиражей</span></div>${chainsHtml}<div class="section"><span>Все тиражи дня</span></div>${drawsHtml}`;
@@ -730,7 +744,7 @@ async function update(){
   const result=await fetchDrawHistory();
   const added=merge(result.items,false);
   render();
-  $('status').textContent=added?`Добавлено ${added} · всего ${draws.length}`:`База актуальна · всего ${draws.length} · v7.1.3`
+  $('status').textContent=added?`Добавлено ${added} · всего ${draws.length}`:`База актуальна · всего ${draws.length} · v7.1.4`
  }catch(e){
   render();
   $('status').textContent=draws.length
