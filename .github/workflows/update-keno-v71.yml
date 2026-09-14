@@ -1,7 +1,8 @@
 name: KENO v7.1 Auto Update
 
 # Единственный автоматический запуск приходит извне через workflow_dispatch.
-# Внутренний GitHub schedule удалён, чтобы два источника не ставили запуски в очередь.
+# Как в M5M: на старте замораживаем ожидаемый тираж и повторяем чтение Столото,
+# пока официальный архив реально не догонит этот frozen target.
 on:
   workflow_dispatch:
 
@@ -15,7 +16,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout latest main
@@ -31,6 +32,43 @@ jobs:
           git fetch origin main --prune
           git reset --hard origin/main
 
+      - name: Freeze target draw for this run
+        env:
+          KENO_PUBLICATION_GRACE_MINUTES: "7"
+        run: |
+          python3 - <<'PY'
+          import os
+          from datetime import datetime, timezone, timedelta
+
+          S=[
+          '00:02','00:17','00:32','01:02','01:17','01:32','02:02','02:17','02:32','03:02','03:32',
+          '04:02','04:17','04:32','05:02','05:17','05:32','06:02','06:17','06:32','07:02','07:32',
+          '08:02','08:17','08:32','09:02','09:17','09:32','10:02','10:17','10:32','11:02','11:32',
+          '12:02','12:17','12:32','13:02','13:17','13:32','14:02','14:17','14:32','15:02','15:32',
+          '16:02','16:17','16:32','17:02','17:17','17:32','18:02','18:17','18:32','19:02','19:32',
+          '20:02','20:17','20:32','21:02','21:17','21:32','22:02','22:17','22:32','23:02','23:32']
+          grace=int(os.environ['KENO_PUBLICATION_GRACE_MINUTES'])
+          now=datetime.now(timezone.utc)+timedelta(hours=3)
+          cutoff=now-timedelta(minutes=grace)
+          due=[t for t in S if t<=cutoff.strftime('%H:%M')]
+          if due:
+              due_date=cutoff.strftime('%d.%m.%y')
+              due_time=due[-1]
+          else:
+              previous=cutoff-timedelta(days=1)
+              due_date=previous.strftime('%d.%m.%y')
+              due_time=S[-1]
+
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as env_file:
+              env_file.write(f'KENO_DUE_DATE={due_date}\n')
+              env_file.write(f'KENO_DUE_TIME={due_time}\n')
+
+          print(
+              f'Frozen KENO target: {due_date} {due_time}; '
+              f'run start={now:%d.%m.%y %H:%M:%S} MSK; grace={grace}m'
+          )
+          PY
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -42,11 +80,79 @@ jobs:
           npm install playwright
           npx playwright install --with-deps chromium
 
-      - name: Stoloto OAuth · double verification
+      - name: Stoloto OAuth · double verification · catch frozen target
         env:
           STOLOTO_EMAIL: ${{ secrets.STOLOTO_EMAIL }}
           STOLOTO_PASSWORD: ${{ secrets.STOLOTO_PASSWORD }}
-        run: node stoloto-keno-update-v71.mjs
+        shell: bash
+        run: |
+          set -u
+          success=0
+
+          for attempt in 1 2 3 4 5 6; do
+            echo "KENO Stoloto attempt $attempt/6"
+
+            if node stoloto-keno-update-v71.mjs; then
+              if python3 - <<'PY'
+          import json, os, sys
+          from datetime import datetime
+
+          S=[
+          '00:02','00:17','00:32','01:02','01:17','01:32','02:02','02:17','02:32','03:02','03:32',
+          '04:02','04:17','04:32','05:02','05:17','05:32','06:02','06:17','06:32','07:02','07:32',
+          '08:02','08:17','08:32','09:02','09:17','09:32','10:02','10:17','10:32','11:02','11:32',
+          '12:02','12:17','12:32','13:02','13:17','13:32','14:02','14:17','14:32','15:02','15:32',
+          '16:02','16:17','16:32','17:02','17:17','17:32','18:02','18:17','18:32','19:02','19:32',
+          '20:02','20:17','20:32','21:02','21:17','21:32','22:02','22:17','22:32','23:02','23:32']
+
+          due_date=os.environ['KENO_DUE_DATE']
+          due_time=os.environ['KENO_DUE_TIME']
+
+          try:
+              status=json.load(open('keno-status-v71.json',encoding='utf-8'))
+          except Exception as e:
+              print('status read failed:',e)
+              sys.exit(1)
+
+          def key(ds,tm):
+              d=datetime.strptime(str(ds),'%d.%m.%y')
+              return (d.toordinal(), S.index(str(tm)) if str(tm) in S else -1)
+
+          try:
+              latest_date=status.get('latestDate')
+              latest_time=status.get('latestTime')
+              ok=key(latest_date,latest_time)>=key(due_date,due_time)
+          except Exception:
+              latest_date=status.get('latestDate')
+              latest_time=status.get('latestTime')
+              ok=False
+
+          print(
+              'frozen_due=',due_date,due_time,
+              'latest=',latest_date,latest_time,
+              'caught=',ok
+          )
+          sys.exit(0 if ok else 1)
+          PY
+              then
+                echo "KENO is caught up to the frozen target."
+                success=1
+                break
+              fi
+            else
+              echo "Reader failed; retry is allowed."
+            fi
+
+            if [ "$attempt" -lt 6 ]; then
+              echo "Retry in 25 sec..."
+              sleep 25
+            fi
+          done
+
+          if [ "$success" -ne 1 ]; then
+            echo "::error::KENO could not catch the frozen due draw after 6 attempts."
+            exit 1
+          fi
 
       - name: Commit new draws
         shell: bash
