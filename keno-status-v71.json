@@ -2,22 +2,22 @@
   "version": "7.1.4",
   "source": "https://m.stoloto.ru/keno2/archive/",
   "sourceLabel": "Официальный Столото · OAuth · двойная проверка",
-  "updatedAt": "2026-10-05T05:39:53.789Z",
-  "checkedAt": "2026-10-05T05:39:53.789Z",
-  "drawsStored": 34211,
-  "latestDraw": 328892,
+  "updatedAt": "2026-10-05T06:12:49.718Z",
+  "checkedAt": "2026-10-05T06:12:49.718Z",
+  "drawsStored": 34212,
+  "latestDraw": 328893,
   "latestDate": "05.10.26",
-  "latestTime": "08:32",
-  "latestParity": "Больше нечётных",
-  "latestColumn": 1,
+  "latestTime": "09:02",
+  "latestParity": "Больше чётных",
+  "latestColumn": 8,
   "latestColumnSource": "stoloto-official",
-  "officialParityStored": 1689,
-  "officialColumnsStored": 1689,
+  "officialParityStored": 1690,
+  "officialColumnsStored": 1690,
   "verification": "double-official-metadata",
   "stolotoDoubleCheck": {
     "readingCounts": [
       240,
-      300
+      270
     ],
     "stableCount": 240,
     "unstableSkipped": 0
